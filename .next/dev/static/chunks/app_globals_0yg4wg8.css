@@ -23,6 +23,8 @@
     --color-green-600: #00a544;
     --color-green-700: #008138;
     --color-blue-50: #eff6ff;
+    --color-purple-100: #f3e8ff;
+    --color-purple-700: #8200da;
     --color-gray-100: #f3f4f6;
     --color-gray-200: #e5e7eb;
     --color-gray-400: #99a1af;
@@ -61,6 +63,8 @@
       --color-green-600: lab(59.0978% -58.6621 41.2579);
       --color-green-700: lab(47.0329% -47.0239 31.4788);
       --color-blue-50: lab(96.492% -1.14644 -5.11479);
+      --color-purple-100: lab(93.3333% 6.97437 -9.83434);
+      --color-purple-700: lab(36.1758% 69.8525 -80.0381);
       --color-gray-100: lab(96.1596% -.0823438 -1.13575);
       --color-gray-200: lab(91.6229% -.159115 -2.26791);
       --color-gray-400: lab(65.9269% -.832707 -8.17473);
@@ -331,12 +335,20 @@
     margin-top: calc(var(--spacing) * .5);
   }
 
+  .mt-3 {
+    margin-top: calc(var(--spacing) * 3);
+  }
+
   .mt-4 {
     margin-top: calc(var(--spacing) * 4);
   }
 
   .mb-1 {
     margin-bottom: var(--spacing);
+  }
+
+  .mb-2 {
+    margin-bottom: calc(var(--spacing) * 2);
   }
 
   .mb-3 {
@@ -357,6 +369,10 @@
 
   .mb-8 {
     margin-bottom: calc(var(--spacing) * 8);
+  }
+
+  .ml-2 {
+    margin-left: calc(var(--spacing) * 2);
   }
 
   .block {
@@ -387,6 +403,14 @@
     height: calc(var(--spacing) * 6);
   }
 
+  .h-7 {
+    height: calc(var(--spacing) * 7);
+  }
+
+  .max-h-64 {
+    max-height: calc(var(--spacing) * 64);
+  }
+
   .min-h-screen {
     min-height: 100vh;
   }
@@ -399,8 +423,16 @@
     width: calc(var(--spacing) * 6);
   }
 
+  .w-7 {
+    width: calc(var(--spacing) * 7);
+  }
+
   .w-16 {
     width: calc(var(--spacing) * 16);
+  }
+
+  .w-28 {
+    width: calc(var(--spacing) * 28);
   }
 
   .w-full {
@@ -419,6 +451,10 @@
     min-width: 0;
   }
 
+  .flex-1 {
+    flex: 1;
+  }
+
   .shrink-0 {
     flex-shrink: 0;
   }
@@ -431,6 +467,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .flex-col {
+    flex-direction: column;
+  }
+
   .flex-wrap {
     flex-wrap: wrap;
   }
@@ -439,12 +479,24 @@
     align-items: center;
   }
 
+  .items-end {
+    align-items: flex-end;
+  }
+
+  .items-stretch {
+    align-items: stretch;
+  }
+
   .justify-between {
     justify-content: space-between;
   }
 
   .justify-center {
     justify-content: center;
+  }
+
+  .gap-1 {
+    gap: var(--spacing);
   }
 
   .gap-1\.5 {
@@ -467,6 +519,12 @@
     gap: calc(var(--spacing) * 8);
   }
 
+  :where(.space-y-1 > :not(:last-child)) {
+    --tw-space-y-reverse: 0;
+    margin-block-start: calc(var(--spacing) * var(--tw-space-y-reverse));
+    margin-block-end: calc(var(--spacing) * calc(1 - var(--tw-space-y-reverse)));
+  }
+
   :where(.space-y-1\.5 > :not(:last-child)) {
     --tw-space-y-reverse: 0;
     margin-block-start: calc(calc(var(--spacing) * 1.5) * var(--tw-space-y-reverse));
@@ -477,6 +535,12 @@
     --tw-space-y-reverse: 0;
     margin-block-start: calc(calc(var(--spacing) * 2) * var(--tw-space-y-reverse));
     margin-block-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-y-reverse)));
+  }
+
+  :where(.space-y-3 > :not(:last-child)) {
+    --tw-space-y-reverse: 0;
+    margin-block-start: calc(calc(var(--spacing) * 3) * var(--tw-space-y-reverse));
+    margin-block-end: calc(calc(var(--spacing) * 3) * calc(1 - var(--tw-space-y-reverse)));
   }
 
   :where(.space-y-4 > :not(:last-child)) {
@@ -505,6 +569,10 @@
 
   .overflow-hidden {
     overflow: hidden;
+  }
+
+  .overflow-y-auto {
+    overflow-y: auto;
   }
 
   .rounded-full {
@@ -566,6 +634,14 @@
     background-color: var(--color-green-600);
   }
 
+  .bg-purple-100 {
+    background-color: var(--color-purple-100);
+  }
+
+  .bg-red-600 {
+    background-color: var(--color-red-600);
+  }
+
   .bg-white {
     background-color: var(--color-white);
   }
@@ -576,6 +652,10 @@
 
   .bg-yellow-100 {
     background-color: var(--color-yellow-100);
+  }
+
+  .p-3 {
+    padding: calc(var(--spacing) * 3);
   }
 
   .p-4 {
@@ -628,6 +708,10 @@
 
   .py-8 {
     padding-block: calc(var(--spacing) * 8);
+  }
+
+  .pr-1 {
+    padding-right: var(--spacing);
   }
 
   .text-center {
@@ -683,6 +767,10 @@
     letter-spacing: var(--tracking-wide);
   }
 
+  .break-words {
+    overflow-wrap: break-word;
+  }
+
   .text-\[var\(--blue\)\] {
     color: var(--blue);
   }
@@ -705,6 +793,14 @@
 
   .text-gray-600 {
     color: var(--color-gray-600);
+  }
+
+  .text-green-600 {
+    color: var(--color-green-600);
+  }
+
+  .text-purple-700 {
+    color: var(--color-purple-700);
   }
 
   .text-red-600 {

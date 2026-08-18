@@ -303,7 +303,9 @@ __turbopack_context__.s([
     "registerPlayer",
     ()=>registerPlayer,
     "setPlayerPresent",
-    ()=>setPlayerPresent
+    ()=>setPlayerPresent,
+    "setPlayerTeam",
+    ()=>setPlayerTeam
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/supabaseClient.js [app-ssr] (ecmascript)");
 ;
@@ -359,6 +361,12 @@ async function setPlayerPresent(id, present) {
     }).eq("id", id);
     if (error) throw new Error(error.message);
 }
+async function setPlayerTeam(id, team_id) {
+    const { error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from("players").update({
+        team_id: team_id || null
+    }).eq("id", id);
+    if (error) throw new Error(error.message);
+}
 }),
 "[project]/lib/supabaseClient.js [app-ssr] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
@@ -387,6 +395,8 @@ __turbopack_context__.s([
     ()=>TIER_LABELS,
     "assignPlayerToQueues",
     ()=>assignPlayerToQueues,
+    "assignPresentPlayer",
+    ()=>assignPresentPlayer,
     "buildAutoQueues",
     ()=>buildAutoQueues,
     "tierIndex",
@@ -488,6 +498,26 @@ function assignPlayerToQueues(player, queues, makeId) {
             ]
         }
     ];
+}
+function assignPresentPlayer(player, queues, allPlayers, makeId) {
+    if (player.team_id) {
+        const teammates = allPlayers.filter((p)=>p.team_id === player.team_id && p.present);
+        if (teammates.length === 4) {
+            const teamIds = new Set(teammates.map((p)=>p.id));
+            const cleared = queues.map((q)=>({
+                    ...q,
+                    players: q.players.filter((p)=>!teamIds.has(p.id))
+                }));
+            return [
+                ...cleared,
+                {
+                    id: makeId(),
+                    players: teammates
+                }
+            ];
+        }
+    }
+    return assignPlayerToQueues(player, queues, makeId);
 }
 }),
 ];

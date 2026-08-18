@@ -27,7 +27,12 @@ export default function LoginPage() {
       setError(result.error);
       return;
     }
-    setSession({ id: result.player.id, name: result.player.name, email: result.player.email });
+    setSession({
+      id: result.player.id,
+      name: result.player.name,
+      email: result.player.email,
+      role: result.player.role,
+    });
     router.push("/dashboard");
   }
 

@@ -95,7 +95,7 @@ function DashboardPage() {
         if (nextPresent) {
             // Place just this player into the first queue that has room and
             // whose skill spread would stay within 1 tier — or start a new queue.
-            const next = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$tiers$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["assignPlayerToQueues"])(player, queues, newQueueId);
+            const next = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$tiers$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["assignPresentPlayer"])(player, queues, updatedPlayers, newQueueId);
             persistQueues(next);
         } else {
             // Pull them out of wherever they are (does nothing if on a court —
@@ -179,7 +179,7 @@ function DashboardPage() {
             for (const freed of court.players){
                 const fullPlayer = players.find((p)=>p.id === freed.id);
                 if (fullPlayer && fullPlayer.present) {
-                    next = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$tiers$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["assignPlayerToQueues"])(fullPlayer, next, newQueueId);
+                    next = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$tiers$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["assignPresentPlayer"])(fullPlayer, next, players, newQueueId);
                 }
             }
         }
@@ -207,9 +207,40 @@ function DashboardPage() {
         }
     }
     const canPlay = queues.length >= 3 && queues[0]?.players.length === 4 && queues[1]?.players.length === 4 && queues[2]?.players.length === 4;
+    const isAdmin = session?.role === "admin";
+    const teamGroups = {};
+    for (const p of players){
+        if (!p.team_id) continue;
+        if (!teamGroups[p.team_id]) teamGroups[p.team_id] = [];
+        teamGroups[p.team_id].push(p);
+    }
+    const nextToPlayIds = new Set(queues.slice(0, 3).flatMap((q)=>(q.players || []).filter(Boolean).map((p)=>p.id)));
+    const myStatus = session ? statusMap[session.id] === "playing" ? "playing" : nextToPlayIds.has(session.id) ? "next" : null : null;
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
         className: "min-h-screen bg-[var(--background)]",
         children: [
+            myStatus === "playing" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "bg-green-600 text-white text-sm font-medium text-center py-2 px-4",
+                children: [
+                    "You're currently playing, ",
+                    session?.name
+                ]
+            }, void 0, true, {
+                fileName: "[project]/app/dashboard/page.js",
+                lineNumber: 237,
+                columnNumber: 9
+            }, this),
+            myStatus === "next" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "bg-red-600 text-white text-sm font-medium text-center py-2 px-4",
+                children: [
+                    "You're next to play, ",
+                    session?.name
+                ]
+            }, void 0, true, {
+                fileName: "[project]/app/dashboard/page.js",
+                lineNumber: 242,
+                columnNumber: 9
+            }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("header", {
                 className: "border-b border-[var(--border)] bg-[var(--surface)]",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -222,7 +253,7 @@ function DashboardPage() {
                                     className: "w-3 h-3 rounded-full bg-[var(--yellow)]"
                                 }, void 0, false, {
                                     fileName: "[project]/app/dashboard/page.js",
-                                    lineNumber: 222,
+                                    lineNumber: 249,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -230,13 +261,13 @@ function DashboardPage() {
                                     children: "Miagao Pickleball Club"
                                 }, void 0, false, {
                                     fileName: "[project]/app/dashboard/page.js",
-                                    lineNumber: 223,
+                                    lineNumber: 250,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/dashboard/page.js",
-                            lineNumber: 221,
+                            lineNumber: 248,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -247,7 +278,7 @@ function DashboardPage() {
                                     children: session?.name
                                 }, void 0, false, {
                                     fileName: "[project]/app/dashboard/page.js",
-                                    lineNumber: 226,
+                                    lineNumber: 253,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -256,24 +287,24 @@ function DashboardPage() {
                                     children: "Log out"
                                 }, void 0, false, {
                                     fileName: "[project]/app/dashboard/page.js",
-                                    lineNumber: 227,
+                                    lineNumber: 254,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/dashboard/page.js",
-                            lineNumber: 225,
+                            lineNumber: 252,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/dashboard/page.js",
-                    lineNumber: 220,
+                    lineNumber: 247,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/app/dashboard/page.js",
-                lineNumber: 219,
+                lineNumber: 246,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -292,23 +323,23 @@ function DashboardPage() {
                                                 children: "Courts"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/page.js",
-                                                lineNumber: 238,
+                                                lineNumber: 265,
                                                 columnNumber: 15
                                             }, this),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                            isAdmin && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                 onClick: handleMatchFinished,
                                                 disabled: !courts.some((c)=>c.players.length > 0),
                                                 className: "text-sm text-[var(--blue)] font-medium disabled:opacity-40 disabled:cursor-not-allowed",
                                                 children: "Match finished"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/page.js",
-                                                lineNumber: 241,
-                                                columnNumber: 15
+                                                lineNumber: 269,
+                                                columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/page.js",
-                                        lineNumber: 237,
+                                        lineNumber: 264,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -317,23 +348,23 @@ function DashboardPage() {
                                                 court: court
                                             }, court.id, false, {
                                                 fileName: "[project]/app/dashboard/page.js",
-                                                lineNumber: 251,
+                                                lineNumber: 280,
                                                 columnNumber: 17
                                             }, this))
                                     }, void 0, false, {
                                         fileName: "[project]/app/dashboard/page.js",
-                                        lineNumber: 249,
+                                        lineNumber: 278,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 236,
+                                lineNumber: 263,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
                                 children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    isAdmin && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "flex flex-wrap items-center justify-between gap-3 mb-3",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -344,7 +375,7 @@ function DashboardPage() {
                                                         children: "Match length"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/page.js",
-                                                        lineNumber: 259,
+                                                        lineNumber: 289,
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -362,7 +393,7 @@ function DashboardPage() {
                                                                     ]
                                                                 }, mins, true, {
                                                                     fileName: "[project]/app/dashboard/page.js",
-                                                                    lineNumber: 262,
+                                                                    lineNumber: 292,
                                                                     columnNumber: 21
                                                                 }, this)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -373,19 +404,19 @@ function DashboardPage() {
                                                                 className: "w-16 px-2 py-1 text-sm border-l border-[var(--border)]"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/page.js",
-                                                                lineNumber: 274,
+                                                                lineNumber: 304,
                                                                 columnNumber: 19
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/dashboard/page.js",
-                                                        lineNumber: 260,
+                                                        lineNumber: 290,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/dashboard/page.js",
-                                                lineNumber: 258,
+                                                lineNumber: 288,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -395,14 +426,14 @@ function DashboardPage() {
                                                 children: "▶ Play — send queues 1–3 to courts"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/page.js",
-                                                lineNumber: 284,
+                                                lineNumber: 314,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/page.js",
-                                        lineNumber: 257,
-                                        columnNumber: 13
+                                        lineNumber: 287,
+                                        columnNumber: 27
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$QueueBoard$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
                                         queues: queues,
@@ -410,32 +441,108 @@ function DashboardPage() {
                                         onRemovePlayer: handleRemovePlayerFromQueue,
                                         onAddPlayer: handleAddPlayerToQueue,
                                         onDeleteQueue: handleDeleteQueue,
-                                        onAddQueue: handleAddQueue
+                                        onAddQueue: handleAddQueue,
+                                        readOnly: !isAdmin
                                     }, void 0, false, {
                                         fileName: "[project]/app/dashboard/page.js",
-                                        lineNumber: 293,
+                                        lineNumber: 325,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 256,
+                                lineNumber: 285,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/dashboard/page.js",
-                        lineNumber: 235,
+                        lineNumber: 262,
                         columnNumber: 9
                     }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("aside", {
+                    isAdmin && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("aside", {
                         children: [
                             playersError && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                 className: "text-sm text-red-600 mb-3",
                                 children: playersError
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 306,
+                                lineNumber: 340,
+                                columnNumber: 13
+                            }, this),
+                            Object.keys(teamGroups).length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 mb-6",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
+                                        className: "text-sm font-medium text-gray-500 uppercase tracking-wide mb-4",
+                                        children: "Teams"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/dashboard/page.js",
+                                        lineNumber: 344,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
+                                        className: "space-y-3",
+                                        children: Object.entries(teamGroups).map(([teamId, members])=>{
+                                            const presentCount = members.filter((m)=>m.present).length;
+                                            const complete = presentCount === 4;
+                                            return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                className: "text-sm",
+                                                children: [
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                        className: "flex items-center justify-between mb-1",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                className: "font-medium",
+                                                                children: teamId
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/app/dashboard/page.js",
+                                                                lineNumber: 354,
+                                                                columnNumber: 25
+                                                            }, this),
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                className: complete ? "text-green-600" : "text-gray-400",
+                                                                children: [
+                                                                    presentCount,
+                                                                    "/",
+                                                                    members.length,
+                                                                    " present"
+                                                                ]
+                                                            }, void 0, true, {
+                                                                fileName: "[project]/app/dashboard/page.js",
+                                                                lineNumber: 355,
+                                                                columnNumber: 25
+                                                            }, this)
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "[project]/app/dashboard/page.js",
+                                                        lineNumber: 353,
+                                                        columnNumber: 23
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                        className: "text-xs text-gray-400 truncate",
+                                                        children: members.map((m)=>m.name).join(", ")
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/app/dashboard/page.js",
+                                                        lineNumber: 359,
+                                                        columnNumber: 23
+                                                    }, this)
+                                                ]
+                                            }, teamId, true, {
+                                                fileName: "[project]/app/dashboard/page.js",
+                                                lineNumber: 352,
+                                                columnNumber: 21
+                                            }, this);
+                                        })
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/dashboard/page.js",
+                                        lineNumber: 347,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/dashboard/page.js",
+                                lineNumber: 343,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$PresentPanel$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -445,25 +552,25 @@ function DashboardPage() {
                                 loading: loadingPlayers
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 308,
+                                lineNumber: 368,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/dashboard/page.js",
-                        lineNumber: 304,
-                        columnNumber: 9
+                        lineNumber: 338,
+                        columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/dashboard/page.js",
-                lineNumber: 234,
+                lineNumber: 261,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/dashboard/page.js",
-        lineNumber: 218,
+        lineNumber: 235,
         columnNumber: 5
     }, this);
 }
@@ -616,12 +723,20 @@ function PlayerRow({ p, status, onTogglePresent }) {
                                 lineNumber: 28,
                                 columnNumber: 11
                             }, this),
+                            p.team_id && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                className: "inline-block text-[11px] font-medium rounded-full px-2 py-0.5 bg-purple-100 text-purple-700",
+                                children: p.team_id
+                            }, void 0, false, {
+                                fileName: "[project]/components/PresentPanel.js",
+                                lineNumber: 38,
+                                columnNumber: 13
+                            }, this),
                             status && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                 className: `inline-block text-[11px] font-medium rounded-full px-2 py-0.5 ${STATUS_STYLES[status]}`,
                                 children: STATUS_LABELS[status]
                             }, void 0, false, {
                                 fileName: "[project]/components/PresentPanel.js",
-                                lineNumber: 36,
+                                lineNumber: 43,
                                 columnNumber: 13
                             }, this)
                         ]
@@ -642,7 +757,7 @@ function PlayerRow({ p, status, onTogglePresent }) {
                 children: p.present ? "Present" : "Absent"
             }, void 0, false, {
                 fileName: "[project]/components/PresentPanel.js",
-                lineNumber: 44,
+                lineNumber: 52,
                 columnNumber: 7
             }, this)
         ]
@@ -670,7 +785,7 @@ function PresentPanel({ players, statusMap, onTogglePresent, loading }) {
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/PresentPanel.js",
-                        lineNumber: 65,
+                        lineNumber: 73,
                         columnNumber: 9
                     }, this),
                     loading ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -678,14 +793,14 @@ function PresentPanel({ players, statusMap, onTogglePresent, loading }) {
                         children: "Loading…"
                     }, void 0, false, {
                         fileName: "[project]/components/PresentPanel.js",
-                        lineNumber: 70,
+                        lineNumber: 78,
                         columnNumber: 11
                     }, this) : present.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                         className: "text-sm text-gray-400",
                         children: "No one marked present yet."
                     }, void 0, false, {
                         fileName: "[project]/components/PresentPanel.js",
-                        lineNumber: 72,
+                        lineNumber: 80,
                         columnNumber: 11
                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
                         className: "space-y-2",
@@ -695,18 +810,18 @@ function PresentPanel({ players, statusMap, onTogglePresent, loading }) {
                                 onTogglePresent: onTogglePresent
                             }, p.id, false, {
                                 fileName: "[project]/components/PresentPanel.js",
-                                lineNumber: 76,
+                                lineNumber: 84,
                                 columnNumber: 15
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/components/PresentPanel.js",
-                        lineNumber: 74,
+                        lineNumber: 82,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/PresentPanel.js",
-                lineNumber: 64,
+                lineNumber: 72,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -721,7 +836,7 @@ function PresentPanel({ players, statusMap, onTogglePresent, loading }) {
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/PresentPanel.js",
-                        lineNumber: 88,
+                        lineNumber: 96,
                         columnNumber: 9
                     }, this),
                     loading ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -729,14 +844,14 @@ function PresentPanel({ players, statusMap, onTogglePresent, loading }) {
                         children: "Loading…"
                     }, void 0, false, {
                         fileName: "[project]/components/PresentPanel.js",
-                        lineNumber: 93,
+                        lineNumber: 101,
                         columnNumber: 11
                     }, this) : absent.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                         className: "text-sm text-gray-400",
                         children: "Everyone registered is present."
                     }, void 0, false, {
                         fileName: "[project]/components/PresentPanel.js",
-                        lineNumber: 95,
+                        lineNumber: 103,
                         columnNumber: 11
                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
                         className: "space-y-2",
@@ -746,24 +861,24 @@ function PresentPanel({ players, statusMap, onTogglePresent, loading }) {
                                 onTogglePresent: onTogglePresent
                             }, p.id, false, {
                                 fileName: "[project]/components/PresentPanel.js",
-                                lineNumber: 99,
+                                lineNumber: 107,
                                 columnNumber: 15
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/components/PresentPanel.js",
-                        lineNumber: 97,
+                        lineNumber: 105,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/PresentPanel.js",
-                lineNumber: 87,
+                lineNumber: 95,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/PresentPanel.js",
-        lineNumber: 63,
+        lineNumber: 71,
         columnNumber: 5
     }, this);
 }
@@ -780,7 +895,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$tiers$2e$js__$5b$app$
 "use client";
 ;
 ;
-function QueueBoard({ queues, availablePlayers, onRemovePlayer, onAddPlayer, onDeleteQueue, onAddQueue }) {
+function QueueBoard({ queues, availablePlayers, onRemovePlayer, onAddPlayer, onDeleteQueue, onAddQueue, readOnly = false }) {
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -791,22 +906,22 @@ function QueueBoard({ queues, availablePlayers, onRemovePlayer, onAddPlayer, onD
                         children: "Queues"
                     }, void 0, false, {
                         fileName: "[project]/components/QueueBoard.js",
-                        lineNumber: 16,
+                        lineNumber: 17,
                         columnNumber: 9
                     }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                    !readOnly && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                         onClick: onAddQueue,
                         className: "text-sm text-[var(--blue)] font-medium",
                         children: "+ New queue"
                     }, void 0, false, {
                         fileName: "[project]/components/QueueBoard.js",
-                        lineNumber: 19,
-                        columnNumber: 9
+                        lineNumber: 21,
+                        columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/QueueBoard.js",
-                lineNumber: 15,
+                lineNumber: 16,
                 columnNumber: 7
             }, this),
             queues.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -814,7 +929,7 @@ function QueueBoard({ queues, availablePlayers, onRemovePlayer, onAddPlayer, onD
                 children: "No one queued yet. Mark players present to fill a queue automatically."
             }, void 0, false, {
                 fileName: "[project]/components/QueueBoard.js",
-                lineNumber: 28,
+                lineNumber: 31,
                 columnNumber: 9
             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "grid grid-cols-1 sm:grid-cols-3 gap-4",
@@ -838,28 +953,39 @@ function QueueBoard({ queues, availablePlayers, onRemovePlayer, onAddPlayer, onD
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/QueueBoard.js",
-                                                lineNumber: 41,
+                                                lineNumber: 44,
                                                 columnNumber: 19
+                                            }, this),
+                                            queue.players.length === 4 && queue.players.every((p)=>p.team_id && p.team_id === queue.players[0].team_id) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                className: "ml-2 text-[11px] font-medium rounded-full px-2 py-0.5 bg-purple-100 text-purple-700",
+                                                children: [
+                                                    "Team ",
+                                                    queue.players[0].team_id
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/components/QueueBoard.js",
+                                                lineNumber: 49,
+                                                columnNumber: 23
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/QueueBoard.js",
-                                        lineNumber: 39,
+                                        lineNumber: 42,
                                         columnNumber: 17
                                     }, this),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                    !readOnly && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                         onClick: ()=>onDeleteQueue(queue.id),
                                         className: "text-xs text-gray-400 hover:text-red-600",
                                         children: "Delete"
                                     }, void 0, false, {
                                         fileName: "[project]/components/QueueBoard.js",
-                                        lineNumber: 45,
-                                        columnNumber: 17
+                                        lineNumber: 55,
+                                        columnNumber: 19
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/QueueBoard.js",
-                                lineNumber: 38,
+                                lineNumber: 41,
                                 columnNumber: 15
                             }, this),
                             queue.players.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -867,7 +993,7 @@ function QueueBoard({ queues, availablePlayers, onRemovePlayer, onAddPlayer, onD
                                 children: "Empty."
                             }, void 0, false, {
                                 fileName: "[project]/components/QueueBoard.js",
-                                lineNumber: 54,
+                                lineNumber: 65,
                                 columnNumber: 17
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
                                 className: "space-y-1.5 mb-3",
@@ -884,36 +1010,36 @@ function QueueBoard({ queues, availablePlayers, onRemovePlayer, onAddPlayer, onD
                                                         children: __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$tiers$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TIER_LABELS"][p.skill_level]
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/QueueBoard.js",
-                                                        lineNumber: 64,
+                                                        lineNumber: 75,
                                                         columnNumber: 25
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/QueueBoard.js",
-                                                lineNumber: 62,
+                                                lineNumber: 73,
                                                 columnNumber: 23
                                             }, this),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                            !readOnly && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                 onClick: ()=>onRemovePlayer(queue.id, p.id),
                                                 className: "text-xs text-gray-400 hover:text-red-600 shrink-0",
                                                 children: "Remove"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/QueueBoard.js",
-                                                lineNumber: 68,
-                                                columnNumber: 23
+                                                lineNumber: 80,
+                                                columnNumber: 25
                                             }, this)
                                         ]
                                     }, p.id, true, {
                                         fileName: "[project]/components/QueueBoard.js",
-                                        lineNumber: 58,
+                                        lineNumber: 69,
                                         columnNumber: 21
                                     }, this))
                             }, void 0, false, {
                                 fileName: "[project]/components/QueueBoard.js",
-                                lineNumber: 56,
+                                lineNumber: 67,
                                 columnNumber: 17
                             }, this),
-                            queue.players.length < 4 && availablePlayers.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
+                            !readOnly && queue.players.length < 4 && availablePlayers.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
                                 value: "",
                                 onChange: (e)=>{
                                     const player = availablePlayers.find((p)=>p.id === e.target.value);
@@ -926,7 +1052,7 @@ function QueueBoard({ queues, availablePlayers, onRemovePlayer, onAddPlayer, onD
                                         children: "+ Add player…"
                                     }, void 0, false, {
                                         fileName: "[project]/components/QueueBoard.js",
-                                        lineNumber: 90,
+                                        lineNumber: 103,
                                         columnNumber: 19
                                     }, this),
                                     availablePlayers.map((p)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -939,30 +1065,30 @@ function QueueBoard({ queues, availablePlayers, onRemovePlayer, onAddPlayer, onD
                                             ]
                                         }, p.id, true, {
                                             fileName: "[project]/components/QueueBoard.js",
-                                            lineNumber: 92,
+                                            lineNumber: 105,
                                             columnNumber: 21
                                         }, this))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/QueueBoard.js",
-                                lineNumber: 80,
+                                lineNumber: 93,
                                 columnNumber: 17
                             }, this)
                         ]
                     }, queue.id, true, {
                         fileName: "[project]/components/QueueBoard.js",
-                        lineNumber: 34,
+                        lineNumber: 37,
                         columnNumber: 13
                     }, this))
             }, void 0, false, {
                 fileName: "[project]/components/QueueBoard.js",
-                lineNumber: 32,
+                lineNumber: 35,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/QueueBoard.js",
-        lineNumber: 14,
+        lineNumber: 15,
         columnNumber: 5
     }, this);
 }
@@ -978,7 +1104,9 @@ __turbopack_context__.s([
     "registerPlayer",
     ()=>registerPlayer,
     "setPlayerPresent",
-    ()=>setPlayerPresent
+    ()=>setPlayerPresent,
+    "setPlayerTeam",
+    ()=>setPlayerTeam
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/supabaseClient.js [app-ssr] (ecmascript)");
 ;
@@ -1031,6 +1159,12 @@ async function getAllPlayers() {
 async function setPlayerPresent(id, present) {
     const { error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from("players").update({
         present
+    }).eq("id", id);
+    if (error) throw new Error(error.message);
+}
+async function setPlayerTeam(id, team_id) {
+    const { error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from("players").update({
+        team_id: team_id || null
     }).eq("id", id);
     if (error) throw new Error(error.message);
 }
@@ -1159,6 +1293,8 @@ __turbopack_context__.s([
     ()=>TIER_LABELS,
     "assignPlayerToQueues",
     ()=>assignPlayerToQueues,
+    "assignPresentPlayer",
+    ()=>assignPresentPlayer,
     "buildAutoQueues",
     ()=>buildAutoQueues,
     "tierIndex",
@@ -1260,6 +1396,26 @@ function assignPlayerToQueues(player, queues, makeId) {
             ]
         }
     ];
+}
+function assignPresentPlayer(player, queues, allPlayers, makeId) {
+    if (player.team_id) {
+        const teammates = allPlayers.filter((p)=>p.team_id === player.team_id && p.present);
+        if (teammates.length === 4) {
+            const teamIds = new Set(teammates.map((p)=>p.id));
+            const cleared = queues.map((q)=>({
+                    ...q,
+                    players: q.players.filter((p)=>!teamIds.has(p.id))
+                }));
+            return [
+                ...cleared,
+                {
+                    id: makeId(),
+                    players: teammates
+                }
+            ];
+        }
+    }
+    return assignPlayerToQueues(player, queues, makeId);
 }
 }),
 ];

@@ -9,6 +9,7 @@ export default function QueueBoard({
   onAddPlayer,
   onDeleteQueue,
   onAddQueue,
+  readOnly = false,
 }) {
   return (
     <div>
@@ -16,12 +17,14 @@ export default function QueueBoard({
         <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
           Queues
         </h2>
-        <button
+        {!readOnly && (
+          <button
           onClick={onAddQueue}
           className="text-sm text-[var(--blue)] font-medium"
         >
           + New queue
         </button>
+        )}
       </div>
 
       {queues.length === 0 ? (
@@ -41,13 +44,21 @@ export default function QueueBoard({
                   <span className="text-xs font-normal text-gray-400">
                     {queue.players.length}/4
                   </span>
+                  {queue.players.length === 4 &&
+                    queue.players.every((p) => p.team_id && p.team_id === queue.players[0].team_id) && (
+<span className="ml-2 text-[11px] font-medium rounded-full px-2 py-0.5 bg-purple-100 text-purple-700">
+  {queue.players[0].team_id}
+</span>
+                    )}
                 </h3>
-                <button
+              {!readOnly && (
+                  <button
                   onClick={() => onDeleteQueue(queue.id)}
                   className="text-xs text-gray-400 hover:text-red-600"
                 >
                   Delete
                 </button>
+                )}
               </div>
 
               {queue.players.length === 0 ? (
@@ -59,24 +70,26 @@ export default function QueueBoard({
                       key={p.id}
                       className="flex items-center justify-between gap-2 text-sm rounded-lg border border-[var(--border)] px-3 py-1.5"
                     >
-                      <span className="truncate">
+                      <span className="break-words">
                         {p.name}{" "}
                         <span className="text-xs text-gray-400">
                           {TIER_LABELS[p.skill_level]}
                         </span>
                       </span>
-                      <button
+                      {!readOnly && (
+                        <button
                         onClick={() => onRemovePlayer(queue.id, p.id)}
                         className="text-xs text-gray-400 hover:text-red-600 shrink-0"
                       >
                         Remove
                       </button>
+                      )}
                     </li>
                   ))}
                 </ul>
               )}
 
-              {queue.players.length < 4 && availablePlayers.length > 0 && (
+                {!readOnly && queue.players.length < 4 && availablePlayers.length > 0 && (
                 <select
                   value=""
                   onChange={(e) => {

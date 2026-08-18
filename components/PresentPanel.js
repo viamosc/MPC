@@ -19,11 +19,12 @@ const STATUS_STYLES = {
   queued: "bg-yellow-100 text-[var(--yellow-dark)]",
 };
 
-function PlayerRow({ p, status, onTogglePresent }) {
+// NEW
+function PlayerRow({ p, status, onTogglePresent, onQueuePlayer }) {
   return (
     <li className="flex items-center justify-between gap-2 text-sm">
       <div className="min-w-0">
-        <p className="truncate">{p.name}</p>
+        <p className="break-words">{p.name}</p>
         <div className="flex items-center gap-1.5 mt-0.5">
           <span
             className={`inline-block text-[11px] font-medium rounded-full px-2 py-0.5 ${
@@ -32,6 +33,11 @@ function PlayerRow({ p, status, onTogglePresent }) {
           >
             {TIER_LABELS[p.skill_level]}
           </span>
+          {/* {p.team_id && (
+            <span className="inline-block text-[11px] font-medium rounded-full px-2 py-0.5 bg-purple-100 text-purple-700">
+              {p.team_id}
+            </span>
+          )} */}
           {status && (
             <span
               className={`inline-block text-[11px] font-medium rounded-full px-2 py-0.5 ${STATUS_STYLES[status]}`}
@@ -41,21 +47,31 @@ function PlayerRow({ p, status, onTogglePresent }) {
           )}
         </div>
       </div>
-      <button
-        onClick={() => onTogglePresent(p)}
-        className={`shrink-0 text-xs font-medium rounded-full px-3 py-1 transition-colors ${
-          p.present
-            ? "bg-green-600 text-white hover:bg-green-700"
-            : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-        }`}
-      >
-        {p.present ? "Present" : "Absent"}
-      </button>
+      <div className="flex items-center gap-1.5 shrink-0">
+        <button
+          onClick={() => onTogglePresent(p)}
+          className={`text-xs font-medium rounded-full px-3 py-1 transition-colors ${
+            p.present
+              ? "bg-green-600 text-white hover:bg-green-700"
+              : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+          }`}
+        >
+          {p.present ? "Present" : "Absent"}
+        </button>
+        {p.present && !status && (
+          <button
+            onClick={() => onQueuePlayer(p)}
+            className="text-xs font-medium rounded-full w-7 h-7 flex items-center justify-center bg-[var(--blue)] text-white hover:bg-[var(--blue-dark)] transition-colors"
+          >
+            Q
+          </button>
+        )}
+      </div>
     </li>
   );
 }
-
-export default function PresentPanel({ players, statusMap, onTogglePresent, loading }) {
+// NEW
+export default function PresentPanel({ players, statusMap, onTogglePresent, onQueuePlayer, loading }) {
   const present = players.filter((p) => p.present);
   const absent = players.filter((p) => !p.present);
 
@@ -78,6 +94,7 @@ export default function PresentPanel({ players, statusMap, onTogglePresent, load
                 p={p}
                 status={statusMap[p.id]}
                 onTogglePresent={onTogglePresent}
+                onQueuePlayer={onQueuePlayer}
               />
             ))}
           </ul>

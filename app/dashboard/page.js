@@ -12,11 +12,12 @@ import {
   getDuration,
   saveDuration,
 } from "@/lib/store";
-import { getAllPlayers, setPlayerPresent } from "@/lib/players";
-import { assignPlayerToQueues } from "@/lib/tiers";
+import { getAllPlayers, setPlayerPresent, setPlayerTeam } from "@/lib/players";
+import { assignPresentPlayer } from "@/lib/tiers";
 import CourtCard from "@/components/CourtCard";
 import QueueBoard from "@/components/QueueBoard";
 import PresentPanel from "@/components/PresentPanel";
+import TeamManager from "@/components/TeamManager";
 
 let nextQueueId = 1;
 function newQueueId() {
@@ -83,35 +84,68 @@ export default function DashboardPage() {
     );
   }
 
-  async function handleTogglePresent(player) {
-    const nextPresent = !player.present;
-    const updatedPlayers = players.map((p) =>
-      p.id === player.id ? { ...p, present: nextPresent } : p
-    );
-    setPlayers(updatedPlayers);
+// NEW
+async function handleTogglePresent(player) {
+  const nextPresent = !player.present;
+  const updatedPlayers = players.map((p) =>
+    p.id === player.id ? { ...p, present: nextPresent } : p
+  );
+  setPlayers(updatedPlayers);
 
-    try {
-      await setPlayerPresent(player.id, nextPresent);
-    } catch (err) {
-      setPlayersError(err.message);
-    }
-
-    if (nextPresent) {
-      // Place just this player into the first queue that has room and
-      // whose skill spread would stay within 1 tier — or start a new queue.
-      const next = assignPlayerToQueues(player, queues, newQueueId);
-      persistQueues(next);
-    } else {
-      // Pull them out of wherever they are (does nothing if on a court —
-      // players on a court aren't touched until the court is cleared).
-      const next = queues.map((q) => ({
-        ...q,
-        players: q.players.filter((p) => p.id !== player.id),
-      }));
-      persistQueues(next);
-    }
+  try {
+    await setPlayerPresent(player.id, nextPresent);
+  } catch (err) {
+    setPlayersError(err.message);
   }
 
+  if (!nextPresent) {
+    // Pull them out of wherever they are (does nothing if on a court).
+    const next = queues.map((q) => ({
+      ...q,
+      players: q.players.filter((p) => p.id !== player.id),
+    }));
+    persistQueues(next);
+  }
+}
+
+function handleQueuePlayer(player) {
+  const next = assignPresentPlayer(player, queues, players, newQueueId);
+  persistQueues(next);
+}
+
+// NEW
+async function handleSetPlayerTeam(playerId, teamId) {
+  setPlayers((prev) =>
+    prev.map((p) => (p.id === playerId ? { ...p, team_id: teamId || null } : p))
+  );
+
+  try {
+    await setPlayerTeam(playerId, teamId);
+  } catch (err) {
+    setPlayersError(err.message);
+  }
+}
+
+function handleDeleteTeam(teamId, members) {
+  const memberIds = new Set(members.map((m) => m.id));
+  setPlayers((prev) =>
+    prev.map((p) => (memberIds.has(p.id) ? { ...p, team_id: null } : p))
+  );
+  for (const m of members) {
+    setPlayerTeam(m.id, "").catch((err) => setPlayersError(err.message));
+  }
+}
+
+    function handleAddPlayerToTeam(teamId, playerId) {
+    handleSetPlayerTeam(playerId, teamId);
+  }
+
+  function handleRemovePlayerFromTeam(playerId) {
+    handleSetPlayerTeam(playerId, "");
+  }
+
+
+  
   function handleRemovePlayerFromQueue(queueId, playerId) {
     const next = queues.map((q) =>
       q.id === queueId
@@ -177,7 +211,7 @@ export default function DashboardPage() {
       for (const freed of court.players) {
         const fullPlayer = players.find((p) => p.id === freed.id);
         if (fullPlayer && fullPlayer.present) {
-          next = assignPlayerToQueues(fullPlayer, next, newQueueId);
+          next = assignPresentPlayer(fullPlayer, next, players, newQueueId);
         }
       }
     }
@@ -213,9 +247,30 @@ export default function DashboardPage() {
     queues[0]?.players.length === 4 &&
     queues[1]?.players.length === 4 &&
     queues[2]?.players.length === 4;
+  const isAdmin = session?.role === "admin";
+  const nextToPlayIds = new Set(
+    queues.slice(0, 3).flatMap((q) => (q.players || []).filter(Boolean).map((p) => p.id))
+  );
+  const myStatus = session
+    ? statusMap[session.id] === "playing"
+      ? "playing"
+      : nextToPlayIds.has(session.id)
+      ? "next"
+      : null
+    : null;
 
   return (
     <main className="min-h-screen bg-[var(--background)]">
+      {myStatus === "playing" && (
+        <div className="bg-green-600 text-white text-sm font-medium text-center py-2 px-4">
+          You're currently playing, {session?.name}
+        </div>
+      )}
+      {myStatus === "next" && (
+        <div className="bg-red-600 text-white text-sm font-medium text-center py-2 px-4">
+          You're next to play, {session?.name}
+        </div>
+      )}
       <header className="border-b border-[var(--border)] bg-[var(--surface)]">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -238,13 +293,15 @@ export default function DashboardPage() {
               <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
                 Courts
               </h2>
-              <button
-                onClick={handleMatchFinished}
-                disabled={!courts.some((c) => c.players.length > 0)}
-                className="text-sm text-[var(--blue)] font-medium disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Match finished
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={handleMatchFinished}
+                  disabled={!courts.some((c) => c.players.length > 0)}
+                  className="text-sm text-[var(--blue)] font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Match finished
+                </button>
+              )}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {courts.map((court) => (
@@ -254,7 +311,8 @@ export default function DashboardPage() {
           </section>
 
           <section>
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+            {isAdmin && (
+                          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
               <div className="flex items-center gap-2">
                 <label className="text-sm text-gray-500">Match length</label>
                 <div className="flex items-center rounded-lg border border-[var(--border)] overflow-hidden">
@@ -289,6 +347,8 @@ export default function DashboardPage() {
                 ▶ Play — send queues 1–3 to courts
               </button>
             </div>
+            )}
+
 
             <QueueBoard
               queues={queues}
@@ -297,21 +357,33 @@ export default function DashboardPage() {
               onAddPlayer={handleAddPlayerToQueue}
               onDeleteQueue={handleDeleteQueue}
               onAddQueue={handleAddQueue}
+              readOnly={!isAdmin}
             />
           </section>
         </div>
 
-        <aside>
+        {isAdmin && (
+          <aside>
           {playersError && (
             <p className="text-sm text-red-600 mb-3">{playersError}</p>
           )}
+        
           <PresentPanel
             players={players}
             statusMap={statusMap}
             onTogglePresent={handleTogglePresent}
+            onQueuePlayer={handleQueuePlayer}
             loading={loadingPlayers}
           />
+
+            <TeamManager
+            players={players}
+            onAddPlayer={handleAddPlayerToTeam}
+            onRemovePlayer={handleRemovePlayerFromTeam}
+            onDeleteTeam={handleDeleteTeam}
+          />
         </aside>
+        )}
       </div>
     </main>
   );
