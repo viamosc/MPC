@@ -2,15 +2,15 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+// NEW
 import {
   getSession,
   logout,
-  getCourts,
+  getAppState,
   saveCourts,
-  getQueues,
   saveQueues,
-  getDuration,
   saveDuration,
+  subscribeToAppState,
 } from "@/lib/store";
 import { getAllPlayers, setPlayerPresent, setPlayerTeam } from "@/lib/players";
 import { assignPresentPlayer } from "@/lib/tiers";
@@ -47,29 +47,47 @@ export default function DashboardPage() {
     setLoadingPlayers(false);
   }, []);
 
-  useEffect(() => {
-    const s = getSession();
-    if (!s) {
-      router.replace("/login");
-      return;
+// NEW
+useEffect(() => {
+  const s = getSession();
+  if (!s) {
+    router.replace("/login");
+    return;
+  }
+  setSessionState(s);
+  refreshPlayers();
+
+  (async () => {
+    try {
+      const state = await getAppState();
+      setCourts(state.courts || []);
+      setQueues(state.queues || []);
+      setDuration(state.duration ?? 20);
+    } catch (err) {
+      setPlayersError(err.message);
     }
-    setSessionState(s);
-    setCourts(getCourts());
-    setQueues(getQueues());
-    setDuration(getDuration());
-    refreshPlayers();
     setReady(true);
-  }, [router, refreshPlayers]);
+  })();
 
-  function persistQueues(next) {
-    setQueues(next);
-    saveQueues(next);
-  }
+  const unsubscribe = subscribeToAppState((newState) => {
+    if (newState.courts) setCourts(newState.courts);
+    if (newState.queues) setQueues(newState.queues);
+    if (newState.duration != null) setDuration(newState.duration);
+  });
 
-  function persistCourts(next) {
-    setCourts(next);
-    saveCourts(next);
-  }
+  return () => unsubscribe();
+}, [router, refreshPlayers]);
+
+// NEW
+function persistQueues(next) {
+  setQueues(next);
+  saveQueues(next).catch((err) => setPlayersError(err.message));
+}
+
+function persistCourts(next) {
+  setCourts(next);
+  saveCourts(next).catch((err) => setPlayersError(err.message));
+}
 
   // Players who are present but not sitting in a queue or on a court.
   function getAvailable(playersList, queuesList, courtsList) {
@@ -218,11 +236,11 @@ function handleDeleteTeam(teamId, members) {
     persistQueues(next);
   }
 
-  function handleDurationChange(minutes) {
-    setDuration(minutes);
-    saveDuration(minutes);
-  }
-
+// NEW
+function handleDurationChange(minutes) {
+  setDuration(minutes);
+  saveDuration(minutes).catch((err) => setPlayersError(err.message));
+}
   function handleLogout() {
     logout();
     router.replace("/login");

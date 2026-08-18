@@ -306,12 +306,8 @@ async function setPlayerTeam(id, team_id) {
 "use strict";
 
 __turbopack_context__.s([
-    "getCourts",
-    ()=>getCourts,
-    "getDuration",
-    ()=>getDuration,
-    "getQueues",
-    ()=>getQueues,
+    "getAppState",
+    ()=>getAppState,
     "getSession",
     ()=>getSession,
     "logout",
@@ -323,14 +319,14 @@ __turbopack_context__.s([
     "saveQueues",
     ()=>saveQueues,
     "setSession",
-    ()=>setSession
+    ()=>setSession,
+    "subscribeToAppState",
+    ()=>subscribeToAppState
 ]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/supabaseClient.js [app-ssr] (ecmascript)");
 // Session, courts, and queue state live in localStorage (single-device demo).
 // Registered players and their skill level live in Supabase (see lib/players.js).
-const SESSION_KEY = "courtapp_session";
-const COURTS_KEY = "courtapp_courts_v2";
-const QUEUES_KEY = "courtapp_queues_v2";
-const DURATION_KEY = "courtapp_duration";
+const SESSION_KEY = "pickleball_session";
 function read(key, fallback) {
     if ("TURBOPACK compile-time truthy", 1) return fallback;
     //TURBOPACK unreachable
@@ -380,23 +376,42 @@ const DEFAULT_COURTS = [
         running: false
     }
 ];
-function getCourts() {
-    return read(COURTS_KEY, DEFAULT_COURTS);
+;
+const STATE_ROW_ID = 1;
+async function getAppState() {
+    const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from("app_state").select("courts, queues, duration").eq("id", STATE_ROW_ID).single();
+    if (error) throw new Error(error.message);
+    return data;
 }
-function saveCourts(courts) {
-    write(COURTS_KEY, courts);
+async function saveCourts(courts) {
+    const { error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from("app_state").update({
+        courts,
+        updated_at: new Date().toISOString()
+    }).eq("id", STATE_ROW_ID);
+    if (error) throw new Error(error.message);
 }
-function getQueues() {
-    return read(QUEUES_KEY, []);
+async function saveQueues(queues) {
+    const { error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from("app_state").update({
+        queues,
+        updated_at: new Date().toISOString()
+    }).eq("id", STATE_ROW_ID);
+    if (error) throw new Error(error.message);
 }
-function saveQueues(queues) {
-    write(QUEUES_KEY, queues);
+async function saveDuration(duration) {
+    const { error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from("app_state").update({
+        duration,
+        updated_at: new Date().toISOString()
+    }).eq("id", STATE_ROW_ID);
+    if (error) throw new Error(error.message);
 }
-function getDuration() {
-    return read(DURATION_KEY, 20);
-}
-function saveDuration(minutes) {
-    write(DURATION_KEY, minutes);
+function subscribeToAppState(onChange) {
+    const channel = __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].channel("app_state_changes").on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "app_state",
+        filter: `id=eq.${STATE_ROW_ID}`
+    }, (payload)=>onChange(payload.new)).subscribe();
+    return ()=>__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].removeChannel(channel);
 }
 }),
 "[project]/lib/supabaseClient.js [app-ssr] (ecmascript)", ((__turbopack_context__) => {
