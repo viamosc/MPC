@@ -12,6 +12,7 @@ export default function RegisterPage() {
     name: "",
     email: "",
     password: "",
+    confirmPassword: "",
     skill_level: TIERS[0],
   });
   const [error, setError] = useState("");
@@ -25,13 +26,19 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
 
-    if (!form.name || !form.email || !form.password) {
+    if (!form.name || !form.email || !form.password || !form.confirmPassword) {
       setError("Fill in every field.");
       return;
     }
 
+    if (form.password !== form.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
     setLoading(true);
-    const result = await registerPlayer(form);
+    const { confirmPassword, ...payload } = form;
+    const result = await registerPlayer(payload);
     setLoading(false);
 
     if (!result.ok) {
@@ -87,6 +94,19 @@ export default function RegisterPage() {
                 name="password"
                 type="password"
                 value={form.password}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
+                placeholder="••••••••"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm mb-1" htmlFor="confirmPassword">Confirm password</label>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                value={form.confirmPassword}
                 onChange={handleChange}
                 className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
                 placeholder="••••••••"

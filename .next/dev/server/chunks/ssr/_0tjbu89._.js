@@ -25,6 +25,7 @@ function RegisterPage() {
         name: "",
         email: "",
         password: "",
+        confirmPassword: "",
         skill_level: __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$tiers$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TIERS"][0]
     });
     const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
@@ -38,12 +39,17 @@ function RegisterPage() {
     async function handleSubmit(e) {
         e.preventDefault();
         setError("");
-        if (!form.name || !form.email || !form.password) {
+        if (!form.name || !form.email || !form.password || !form.confirmPassword) {
             setError("Fill in every field.");
             return;
         }
+        if (form.password !== form.confirmPassword) {
+            setError("Passwords do not match.");
+            return;
+        }
         setLoading(true);
-        const result = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$players$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["registerPlayer"])(form);
+        const { confirmPassword, ...payload } = form;
+        const result = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$players$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["registerPlayer"])(payload);
         setLoading(false);
         if (!result.ok) {
             setError(result.error);
@@ -63,7 +69,7 @@ function RegisterPage() {
                             className: "w-3 h-3 rounded-full bg-[var(--yellow)]"
                         }, void 0, false, {
                             fileName: "[project]/app/register/page.js",
-                            lineNumber: 48,
+                            lineNumber: 55,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -71,13 +77,13 @@ function RegisterPage() {
                             children: "Miagao Pickleball Club"
                         }, void 0, false, {
                             fileName: "[project]/app/register/page.js",
-                            lineNumber: 49,
+                            lineNumber: 56,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/register/page.js",
-                    lineNumber: 47,
+                    lineNumber: 54,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -88,7 +94,7 @@ function RegisterPage() {
                             children: "Create an account"
                         }, void 0, false, {
                             fileName: "[project]/app/register/page.js",
-                            lineNumber: 53,
+                            lineNumber: 60,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -96,7 +102,7 @@ function RegisterPage() {
                             children: "Register to join the player pool."
                         }, void 0, false, {
                             fileName: "[project]/app/register/page.js",
-                            lineNumber: 54,
+                            lineNumber: 61,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -111,7 +117,7 @@ function RegisterPage() {
                                             children: "Name"
                                         }, void 0, false, {
                                             fileName: "[project]/app/register/page.js",
-                                            lineNumber: 58,
+                                            lineNumber: 65,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -124,13 +130,13 @@ function RegisterPage() {
                                             placeholder: "Darah Via Moscoso"
                                         }, void 0, false, {
                                             fileName: "[project]/app/register/page.js",
-                                            lineNumber: 59,
+                                            lineNumber: 66,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/register/page.js",
-                                    lineNumber: 57,
+                                    lineNumber: 64,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -141,7 +147,7 @@ function RegisterPage() {
                                             children: "Email"
                                         }, void 0, false, {
                                             fileName: "[project]/app/register/page.js",
-                                            lineNumber: 71,
+                                            lineNumber: 78,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -154,13 +160,13 @@ function RegisterPage() {
                                             placeholder: "dvmoscoso@gmail.com"
                                         }, void 0, false, {
                                             fileName: "[project]/app/register/page.js",
-                                            lineNumber: 72,
+                                            lineNumber: 79,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/register/page.js",
-                                    lineNumber: 70,
+                                    lineNumber: 77,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -171,7 +177,7 @@ function RegisterPage() {
                                             children: "Password"
                                         }, void 0, false, {
                                             fileName: "[project]/app/register/page.js",
-                                            lineNumber: 84,
+                                            lineNumber: 91,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -184,13 +190,43 @@ function RegisterPage() {
                                             placeholder: "••••••••"
                                         }, void 0, false, {
                                             fileName: "[project]/app/register/page.js",
-                                            lineNumber: 85,
+                                            lineNumber: 92,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/register/page.js",
-                                    lineNumber: 83,
+                                    lineNumber: 90,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                            className: "block text-sm mb-1",
+                                            htmlFor: "confirmPassword",
+                                            children: "Confirm password"
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/register/page.js",
+                                            lineNumber: 104,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                            id: "confirmPassword",
+                                            name: "confirmPassword",
+                                            type: "password",
+                                            value: form.confirmPassword,
+                                            onChange: handleChange,
+                                            className: "w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm",
+                                            placeholder: "••••••••"
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/register/page.js",
+                                            lineNumber: 105,
+                                            columnNumber: 15
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/app/register/page.js",
+                                    lineNumber: 103,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -201,7 +237,7 @@ function RegisterPage() {
                                             children: "Skill level"
                                         }, void 0, false, {
                                             fileName: "[project]/app/register/page.js",
-                                            lineNumber: 97,
+                                            lineNumber: 117,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -215,18 +251,18 @@ function RegisterPage() {
                                                     children: __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$tiers$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TIER_LABELS"][tier]
                                                 }, tier, false, {
                                                     fileName: "[project]/app/register/page.js",
-                                                    lineNumber: 106,
+                                                    lineNumber: 126,
                                                     columnNumber: 19
                                                 }, this))
                                         }, void 0, false, {
                                             fileName: "[project]/app/register/page.js",
-                                            lineNumber: 98,
+                                            lineNumber: 118,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/register/page.js",
-                                    lineNumber: 96,
+                                    lineNumber: 116,
                                     columnNumber: 13
                                 }, this),
                                 error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -234,7 +270,7 @@ function RegisterPage() {
                                     children: error
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/page.js",
-                                    lineNumber: 113,
+                                    lineNumber: 133,
                                     columnNumber: 23
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -244,19 +280,19 @@ function RegisterPage() {
                                     children: loading ? "Creating account…" : "Create account"
                                 }, void 0, false, {
                                     fileName: "[project]/app/register/page.js",
-                                    lineNumber: 115,
+                                    lineNumber: 135,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/register/page.js",
-                            lineNumber: 56,
+                            lineNumber: 63,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/register/page.js",
-                    lineNumber: 52,
+                    lineNumber: 59,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -270,24 +306,24 @@ function RegisterPage() {
                             children: "Log in"
                         }, void 0, false, {
                             fileName: "[project]/app/register/page.js",
-                            lineNumber: 127,
+                            lineNumber: 147,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/register/page.js",
-                    lineNumber: 125,
+                    lineNumber: 145,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/register/page.js",
-            lineNumber: 46,
+            lineNumber: 53,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/app/register/page.js",
-        lineNumber: 45,
+        lineNumber: 52,
         columnNumber: 5
     }, this);
 }
