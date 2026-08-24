@@ -33,6 +33,7 @@ import PlayerPanel from "@/components/PlayerPanel";
 import { nextTeamLabel } from "@/components/TeamManager";
 import { refresh } from "next/cache";
 import { supabase } from "@/lib/supabaseClient";
+import EditProfileModal from "@/components/EditProfileModal";
 
 let nextQueueId = 1;
 function newQueueId() {
@@ -55,6 +56,7 @@ export default function DashboardPage() {
   const [autoPlayIn, setAutoPlayIn] = useState(null);
   const [skillBased, setSkillBased] = useState(true);
   const [autoDuration, setAutoDuration] = useState(true);
+  const [editingProfile, setEditingProfile] = useState(false);
 
   const refreshPlayers = useCallback(async () => {
     setLoadingPlayers(true);
@@ -545,7 +547,12 @@ return () => {
             <h1 className="font-semibold tracking-tight">Miagao Pickleball Club</h1>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500">{formatPlayerName(session?.name)}</span>
+            <button
+  onClick={() => setEditingProfile(true)}
+  className="text-sm text-gray-500 hover:text-[var(--blue)] font-medium transition-colors"
+>
+  {formatPlayerName(session?.name)}
+</button>
             <button onClick={handleLogout} className="text-sm text-[var(--blue)] font-medium">
               Log out
             </button>
@@ -745,6 +752,17 @@ return () => {
             />
           </aside>
         )}
+
+        {editingProfile && currentPlayer && (
+  <EditProfileModal
+    player={currentPlayer}
+    onClose={() => setEditingProfile(false)}
+    onSaved={(updated) => {
+      setPlayers((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+      setSessionState((s) => ({ ...s, name: updated.name }));
+    }}
+  />
+)}
       </div>
     </main>
   );

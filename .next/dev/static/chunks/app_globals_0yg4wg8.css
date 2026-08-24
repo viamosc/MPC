@@ -49,6 +49,7 @@
     --color-gray-500: #6a7282;
     --color-gray-600: #4a5565;
     --color-gray-800: #1e2939;
+    --color-black: #000;
     --color-white: #fff;
     --spacing: .25rem;
     --container-sm: 24rem;
@@ -349,6 +350,18 @@
 @layer utilities {
   .visible {
     visibility: visible;
+  }
+
+  .fixed {
+    position: fixed;
+  }
+
+  .inset-0 {
+    inset: 0;
+  }
+
+  .z-50 {
+    z-index: 50;
   }
 
   .mx-auto {
@@ -660,6 +673,16 @@
     background-color: var(--yellow);
   }
 
+  .bg-black\/40 {
+    background-color: #0006;
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .bg-black\/40 {
+      background-color: color-mix(in oklab, var(--color-black) 40%, transparent);
+    }
+  }
+
   .bg-blue-50 {
     background-color: var(--color-blue-50);
   }
@@ -908,6 +931,10 @@
 
     .hover\:text-\[var\(--blue\)\]:hover {
       color: var(--blue);
+    }
+
+    .hover\:text-gray-600:hover {
+      color: var(--color-gray-600);
     }
 
     .hover\:text-red-600:hover {

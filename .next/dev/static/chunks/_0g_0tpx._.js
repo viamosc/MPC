@@ -254,7 +254,9 @@ __turbopack_context__.s([
     "setPlayerTeam",
     ()=>setPlayerTeam,
     "subscribeToPlayers",
-    ()=>subscribeToPlayers
+    ()=>subscribeToPlayers,
+    "updatePlayer",
+    ()=>updatePlayer
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/supabaseClient.js [app-client] (ecmascript)");
 ;
@@ -323,6 +325,32 @@ function subscribeToPlayers(onChange) {
         table: "players"
     }, ()=>onChange()).subscribe();
     return ()=>__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].removeChannel(channel);
+}
+async function updatePlayer(id, { name, email, skill_level, password }) {
+    if (email) {
+        const { data: existing } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("players").select("id").eq("email", email).neq("id", id).maybeSingle();
+        if (existing) {
+            return {
+                ok: false,
+                error: "An account with this email already exists."
+            };
+        }
+    }
+    const updates = {
+        name,
+        email,
+        skill_level
+    };
+    if (password) updates.password = password;
+    const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("players").update(updates).eq("id", id).select().single();
+    if (error) return {
+        ok: false,
+        error: error.message
+    };
+    return {
+        ok: true,
+        player: data
+    };
 }
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
