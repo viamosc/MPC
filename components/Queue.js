@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatPlayerName } from "@/lib/formatName";
 
 export default function Queue({ queue, onAddTeam, onRemoveTeam }) {
   const [names, setNames] = useState(["", "", "", ""]);
@@ -54,7 +55,9 @@ export default function Queue({ queue, onAddTeam, onRemoveTeam }) {
                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--blue)] text-white text-xs font-medium shrink-0">
                   {i + 1}
                 </span>
-                <span className="text-sm">{team.players.join(", ")}</span>
+                <span className="text-sm">
+                  {team.players.map(formatPlayerName).join(", ")}
+                </span>
               </div>
               <button
                 onClick={() => onRemoveTeam(team.id)}

@@ -318,7 +318,9 @@ __turbopack_context__.s([
     "setPlayerPresent",
     ()=>setPlayerPresent,
     "setPlayerTeam",
-    ()=>setPlayerTeam
+    ()=>setPlayerTeam,
+    "subscribeToPlayers",
+    ()=>subscribeToPlayers
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/supabaseClient.js [app-client] (ecmascript)");
 ;
@@ -380,6 +382,14 @@ async function setPlayerTeam(id, team_id) {
     }).eq("id", id);
     if (error) throw new Error(error.message);
 }
+function subscribeToPlayers(onChange) {
+    const channel = __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].channel(`players_changes_${Math.random().toString(36).slice(2)}`).on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "players"
+    }, ()=>onChange()).subscribe();
+    return ()=>__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].removeChannel(channel);
+}
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }
@@ -429,10 +439,10 @@ const TIERS = [
     "intermediate"
 ];
 const TIER_LABELS = {
-    newbie: "Newbie",
-    beginner: "Beginner",
-    novice: "Novice",
-    intermediate: "Intermediate"
+    newbie: "New",
+    beginner: "Beg",
+    novice: "Nov",
+    intermediate: "Int"
 };
 const TIER_INDEX = Object.fromEntries(_c1 = TIERS.map(_c = (t, i)=>[
         t,
@@ -442,7 +452,14 @@ _c2 = TIER_INDEX;
 function tierIndex(skillLevel) {
     return TIER_INDEX[skillLevel] ?? 0;
 }
-function buildAutoQueues(players) {
+function buildAutoQueues(players, skillBased = true) {
+    if (!skillBased) {
+        const groups = [];
+        for(let i = 0; i < players.length; i += 4){
+            groups.push(players.slice(i, i + 4));
+        }
+        return groups;
+    }
     const buckets = TIERS.map((tier)=>players.filter((p)=>p.skill_level === tier));
     const groups = [];
     let leftover = [];
@@ -476,7 +493,7 @@ function buildAutoQueues(players) {
     if (leftover.length) groups.push(leftover);
     return groups.map((g)=>g.map(({ tierIdx, ...p })=>p));
 }
-function assignPlayerToQueues(player, queues, makeId) {
+function assignPlayerToQueues(player, queues, makeId, skillBased = true) {
     const tIdx = tierIndex(player.skill_level);
     for(let i = 0; i < queues.length; i++){
         const q = queues[i];
@@ -488,6 +505,19 @@ function assignPlayerToQueues(player, queues, makeId) {
             next[i] = {
                 ...q,
                 players: [
+                    player
+                ]
+            };
+            return next;
+        }
+        if (!skillBased) {
+            const next = [
+                ...queues
+            ];
+            next[i] = {
+                ...q,
+                players: [
+                    ...q.players,
                     player
                 ]
             };
@@ -520,10 +550,10 @@ function assignPlayerToQueues(player, queues, makeId) {
         }
     ];
 }
-function assignPresentPlayer(player, queues, allPlayers, makeId) {
+function assignPresentPlayer(player, queues, allPlayers, makeId, skillBased = true) {
     if (player.team_id) {
         const teammates = allPlayers.filter((p)=>p.team_id === player.team_id && p.present);
-        if (teammates.length === 4) {
+        if (teammates.length > 1) {
             const teamIds = new Set(teammates.map((p)=>p.id));
             const cleared = queues.map((q)=>({
                     ...q,
@@ -538,7 +568,7 @@ function assignPresentPlayer(player, queues, allPlayers, makeId) {
             ];
         }
     }
-    return assignPlayerToQueues(player, queues, makeId);
+    return assignPlayerToQueues(player, queues, makeId, skillBased);
 }
 var _c, _c1, _c2;
 __turbopack_context__.k.register(_c, "TIER_INDEX$Object.fromEntries$TIERS.map");

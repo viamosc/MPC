@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { TIER_LABELS } from "@/lib/tiers";
+import { formatPlayerName } from "@/lib/formatName";
+import TeamManager from "@/components/TeamManager";
 
 const TIER_COLORS = {
   newbie: "bg-gray-100 text-gray-600",
@@ -19,12 +22,11 @@ const STATUS_STYLES = {
   queued: "bg-yellow-100 text-[var(--yellow-dark)]",
 };
 
-// NEW
 function PlayerRow({ p, status, onTogglePresent, onQueuePlayer }) {
   return (
-    <li className="flex items-center justify-between gap-2 text-sm">
+    <li className="flex items-center justify-between gap-2 text-sm py-2">
       <div className="min-w-0">
-        <p className="break-words">{p.name}</p>
+        <p className="break-words">{formatPlayerName(p.name)}</p>
         <div className="flex items-center gap-1.5 mt-0.5">
           <span
             className={`inline-block text-[11px] font-medium rounded-full px-2 py-0.5 ${
@@ -33,11 +35,6 @@ function PlayerRow({ p, status, onTogglePresent, onQueuePlayer }) {
           >
             {TIER_LABELS[p.skill_level]}
           </span>
-          {/* {p.team_id && (
-            <span className="inline-block text-[11px] font-medium rounded-full px-2 py-0.5 bg-purple-100 text-purple-700">
-              {p.team_id}
-            </span>
-          )} */}
           {status && (
             <span
               className={`inline-block text-[11px] font-medium rounded-full px-2 py-0.5 ${STATUS_STYLES[status]}`}
@@ -70,59 +67,128 @@ function PlayerRow({ p, status, onTogglePresent, onQueuePlayer }) {
     </li>
   );
 }
-// NEW
-export default function PresentPanel({ players, statusMap, onTogglePresent, onQueuePlayer, loading }) {
+
+function PlayerList({ players, statusMap, onTogglePresent, onQueuePlayer, emptyLabel }) {
+  if (players.length === 0) {
+    return <p className="text-sm text-gray-400">{emptyLabel}</p>;
+  }
+  return (
+    <ul className="max-h-80 overflow-y-auto divide-y divide-[var(--border)]">
+      {players.map((p) => (
+        <PlayerRow
+          key={p.id}
+          p={p}
+          status={statusMap ? statusMap[p.id] : null}
+          onTogglePresent={onTogglePresent}
+          onQueuePlayer={onQueuePlayer}
+        />
+      ))}
+    </ul>
+  );
+}
+
+function CollapsiblePanel({ title, children, defaultOpen = true }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between"
+      >
+        <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+          {title}
+        </h2>
+        <span className="text-gray-400 text-xs">{open ? "▲" : "▼"}</span>
+      </button>
+      {open && <div className="mt-4">{children}</div>}
+    </div>
+  );
+}
+
+export default function PresentPanel({
+  players,
+  statusMap,
+  onTogglePresent,
+  onQueuePlayer,
+  loading,
+  // team management passthrough
+  onAddPlayerToTeam,
+  onRemovePlayerFromTeam,
+  onDeleteTeam,
+  onQueueTeam,
+}) {
+  const [presentSearch, setPresentSearch] = useState("");
+  const [absentSearch, setAbsentSearch] = useState("");
+
   const present = players.filter((p) => p.present);
   const absent = players.filter((p) => !p.present);
 
+  const filteredPresent = present.filter((p) =>
+    p.name.toLowerCase().includes(presentSearch.toLowerCase())
+  );
+  const filteredAbsent = absent.filter((p) =>
+    p.name.toLowerCase().includes(absentSearch.toLowerCase())
+  );
+
   return (
-    <div className="space-y-6">
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5">
-        <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">
-          Present ({present.length})
-        </h2>
-
+    <div className="space-y-4">
+      <CollapsiblePanel title={`Present (${present.length})`}>
+        <input
+          type="text"
+          value={presentSearch}
+          onChange={(e) => setPresentSearch(e.target.value)}
+          placeholder="Search present players…"
+          className="w-full rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm mb-3"
+        />
         {loading ? (
           <p className="text-sm text-gray-400">Loading…</p>
-        ) : present.length === 0 ? (
-          <p className="text-sm text-gray-400">No one marked present yet.</p>
         ) : (
-          <ul className="space-y-2">
-            {present.map((p) => (
-              <PlayerRow
-                key={p.id}
-                p={p}
-                status={statusMap[p.id]}
-                onTogglePresent={onTogglePresent}
-                onQueuePlayer={onQueuePlayer}
-              />
-            ))}
-          </ul>
+          <PlayerList
+            players={filteredPresent}
+            statusMap={statusMap}
+            onTogglePresent={onTogglePresent}
+            onQueuePlayer={onQueuePlayer}
+            emptyLabel={
+              presentSearch ? "No matches." : "No one marked present yet."
+            }
+          />
         )}
-      </div>
+      </CollapsiblePanel>
 
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5">
-        <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">
-          Absent ({absent.length})
-        </h2>
-
+      <CollapsiblePanel title={`Absent (${absent.length})`} defaultOpen={false}>
+        <input
+          type="text"
+          value={absentSearch}
+          onChange={(e) => setAbsentSearch(e.target.value)}
+          placeholder="Search absent players…"
+          className="w-full rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm mb-3"
+        />
         {loading ? (
           <p className="text-sm text-gray-400">Loading…</p>
-        ) : absent.length === 0 ? (
-          <p className="text-sm text-gray-400">Everyone registered is present.</p>
         ) : (
-          <ul className="space-y-2">
-            {absent.map((p) => (
-              <PlayerRow
-                key={p.id}
-                p={p}
-                status={null}
-                onTogglePresent={onTogglePresent}
-              />
-            ))}
-          </ul>
+          <PlayerList
+            players={filteredAbsent}
+            statusMap={null}
+            onTogglePresent={onTogglePresent}
+            onQueuePlayer={onQueuePlayer}
+            emptyLabel={
+              absentSearch ? "No matches." : "Everyone registered is present."
+            }
+          />
         )}
-      </div>
+      </CollapsiblePanel>
+
+      <CollapsiblePanel title="Team" defaultOpen={false}>
+        <div className="max-h-80 overflow-y-auto">
+          <TeamManager
+            players={players}
+            onAddPlayer={onAddPlayerToTeam}
+            onRemovePlayer={onRemovePlayerFromTeam}
+            onDeleteTeam={onDeleteTeam}
+            onQueueTeam={onQueueTeam}
+          />
+        </div>
+      </CollapsiblePanel>
     </div>
   );
 }

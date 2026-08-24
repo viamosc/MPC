@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { formatPlayerName } from "@/lib/formatName";
 
-function nextTeamLabel(existingIds) {
+export function nextTeamLabel(existingIds) {
   const nums = existingIds
     .map((id) => parseInt(String(id).replace(/^Team\s*/i, ""), 10))
     .filter((n) => !Number.isNaN(n));
@@ -77,7 +78,7 @@ export default function TeamManager({ players, onAddPlayer, onRemovePlayer, onDe
                     {members.map((m) => (
                       <li key={m.id} className="flex items-center justify-between text-xs">
                         <span className={m.present ? "" : "text-gray-400"}>
-                          {m.name}
+                          {formatPlayerName(m.name)}
                         </span>
                         <button
                           onClick={() => onRemovePlayer(m.id)}
@@ -101,7 +102,7 @@ export default function TeamManager({ players, onAddPlayer, onRemovePlayer, onDe
                     <option value="">+ Add player…</option>
                     {unassignedPresent.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.name}
+                        {formatPlayerName(p.name)}
                       </option>
                     ))}
                   </select>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatPlayerName } from "@/lib/formatName";
 
 function formatTime(ms) {
   if (ms <= 0) return "0:00";
@@ -23,14 +24,14 @@ export default function CourtCard({ court }) {
   const timeUp = court.running && remaining <= 0;
 
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5">
+    <div className="bg-green-50 border border-green-200 rounded-xl p-5">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-medium text-[var(--blue-dark)]">{court.name}</h3>
-        {court.queueLabel && (
-          <span className="text-xs font-medium bg-[var(--yellow)] text-[var(--blue-dark)] rounded-full px-2 py-0.5">
+        <h3 className="font-medium text-gray-800">{court.name}</h3>
+        {/* {court.queueLabel && (
+          <span className="text-xs font-medium bg-transparent border border-green-300 text-green-600 rounded-full px-2 py-0.5">
             {court.queueLabel}
           </span>
-        )}
+        )} */}
       </div>
 
       {court.running && (
@@ -50,9 +51,9 @@ export default function CourtCard({ court }) {
           {court.players.map((player, i) => (
             <li
               key={player?.id ?? i}
-              className="text-sm rounded-lg border border-[var(--border)] px-3 py-1.5"
+              className="text-sm rounded-lg border border-[var(--border)] bg-white px-3 py-1.5"
             >
-              {player?.name ?? player}
+              {formatPlayerName(player?.name ?? player)}
             </li>
           ))}
         </ul>

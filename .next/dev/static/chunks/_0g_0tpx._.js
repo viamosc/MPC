@@ -252,7 +252,9 @@ __turbopack_context__.s([
     "setPlayerPresent",
     ()=>setPlayerPresent,
     "setPlayerTeam",
-    ()=>setPlayerTeam
+    ()=>setPlayerTeam,
+    "subscribeToPlayers",
+    ()=>subscribeToPlayers
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/supabaseClient.js [app-client] (ecmascript)");
 ;
@@ -313,6 +315,14 @@ async function setPlayerTeam(id, team_id) {
         team_id: team_id || null
     }).eq("id", id);
     if (error) throw new Error(error.message);
+}
+function subscribeToPlayers(onChange) {
+    const channel = __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].channel(`players_changes_${Math.random().toString(36).slice(2)}`).on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "players"
+    }, ()=>onChange()).subscribe();
+    return ()=>__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].removeChannel(channel);
 }
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);

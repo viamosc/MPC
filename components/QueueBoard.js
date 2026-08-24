@@ -1,6 +1,7 @@
 "use client";
 
 import { TIER_LABELS } from "@/lib/tiers";
+import { formatPlayerName } from "@/lib/formatName";
 
 export default function QueueBoard({
   queues,
@@ -36,7 +37,11 @@ export default function QueueBoard({
           {queues.map((queue, i) => (
             <div
               key={queue.id}
-              className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4"
+              className={`rounded-xl p-4 ${
+                i < 3
+                  ? "bg-yellow-50/50 border border-yellow-200"
+                  : "bg-[var(--surface)] border border-[var(--border)]"
+              }`}
             >
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-medium text-[var(--blue-dark)]">
@@ -45,10 +50,13 @@ export default function QueueBoard({
                     {queue.players.length}/4
                   </span>
                   {queue.players.length === 4 &&
-                    queue.players.every((p) => p.team_id && p.team_id === queue.players[0].team_id) && (
-<span className="ml-2 text-[11px] font-medium rounded-full px-2 py-0.5 bg-purple-100 text-purple-700">
-  {queue.players[0].team_id}
-</span>
+                    queue.players[0] &&
+                    queue.players.every(
+                      (p) => p && p.team_id && p.team_id === queue.players[0].team_id
+                    ) && (
+                      <span className="ml-2 text-[11px] font-medium rounded-full px-2 py-0.5 bg-purple-100 text-purple-700">
+                        {queue.players[0].team_id}
+                      </span>
                     )}
                 </h3>
               {!readOnly && (
@@ -68,10 +76,10 @@ export default function QueueBoard({
                   {queue.players.map((p) => (
                     <li
                       key={p.id}
-                      className="flex items-center justify-between gap-2 text-sm rounded-lg border border-[var(--border)] px-3 py-1.5"
+                      className="flex items-center justify-between gap-2 text-sm rounded-lg border border-[var(--border)] bg-white px-3 py-1.5"
                     >
                       <span className="break-words">
-                        {p.name}{" "}
+                        {formatPlayerName(p.name)}{" "}
                         <span className="text-xs text-gray-400">
                           {TIER_LABELS[p.skill_level]}
                         </span>
@@ -103,7 +111,7 @@ export default function QueueBoard({
                   <option value="">+ Add player…</option>
                   {availablePlayers.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.name} ({TIER_LABELS[p.skill_level]})
+                      {formatPlayerName(p.name)} ({TIER_LABELS[p.skill_level]})
                     </option>
                   ))}
                 </select>
