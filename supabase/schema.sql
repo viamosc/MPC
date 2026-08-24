@@ -5,7 +5,7 @@ create table if not exists players (
   name text not null,
   email text not null unique,
   password text not null,
-  skill_level text not null check (skill_level in ('newbie', 'beginner', 'novice', 'intermediate')),
+  skill_level text not null check (skill_level in ('newbie', 'beginner', 'novice', 'intermediate', 'executive')),
   present boolean not null default false,
   created_at timestamptz not null default now()
 );

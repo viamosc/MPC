@@ -57,7 +57,13 @@ export default function DashboardPage() {
   const [skillBased, setSkillBased] = useState(true);
   const [autoDuration, setAutoDuration] = useState(true);
   const [editingProfile, setEditingProfile] = useState(false);
-
+  const courtsEmpty = courts.every((c) => !c.running && (c.players || []).length === 0);
+  const canPlay =
+    courtsEmpty &&
+    queues.length >= 3 &&
+    queues[0]?.players.length === 4 &&
+    queues[1]?.players.length === 4 &&
+    queues[2]?.players.length === 4;
   const refreshPlayers = useCallback(async () => {
     setLoadingPlayers(true);
     try {
@@ -204,16 +210,17 @@ useEffect(() => {
     });
   }
 
-  function handleRequestCreateTeam(player) {
+  function handleRequestCreateTeam(player, teamName) {
+    const chosenName = teamName?.trim() || "Team";
     setMyRequest({
       id: "pending",
       player_id: player.id,
       player_name: player.name,
       type: "team_create",
-      team_id: null,
+      team_id: chosenName,
       created_at: new Date().toISOString(),
     });
-    createTeamCreateRequest(player.id, player.name).catch((err) => {
+    createTeamCreateRequest(player.id, player.name, chosenName).catch((err) => {
       setPlayersError(err.message);
       setMyRequest(null);
     });
@@ -252,10 +259,9 @@ useEffect(() => {
     let updatedPlayer = { ...player, present: true };
 
     if (request.type === "team_create") {
-      const existingIds = players.map((p) => p.team_id).filter(Boolean);
-      const label = nextTeamLabel(existingIds);
-      updatedPlayer.team_id = label;
-      setPlayerTeam(player.id, label).catch((err) => setPlayersError(err.message));
+      const chosenLabel = request.team_id || "Team";
+      updatedPlayer.team_id = chosenLabel;
+      setPlayerTeam(player.id, chosenLabel).catch((err) => setPlayersError(err.message));
     } else if (request.type === "team_join") {
       updatedPlayer.team_id = request.team_id;
       setPlayerTeam(player.id, request.team_id).catch((err) => setPlayersError(err.message));
@@ -466,11 +472,6 @@ return () => {
     }
   }, [isAdmin, autoDuration, courts, queues]);
 
-  const canPlay =
-    queues.length >= 3 &&
-    queues[0]?.players.length === 4 &&
-    queues[1]?.players.length === 4 &&
-    queues[2]?.players.length === 4;
 
   // Auto "Match finished": once a running court's timer (endsAt) has
   // passed, trigger the same logic the button does. Button stays visible.
@@ -488,7 +489,7 @@ return () => {
   // Auto "Play": once queues 1-3 are full (canPlay), wait 1 minute then
   // trigger the same logic the button does, unless it stops being ready
   // before the minute is up. Button stays visible.
-  const courtsEmpty = courts.every((c) => !c.running && (c.players || []).length === 0);
+  
 
   useEffect(() => {
     if (!isAdmin || !canPlay || !courtsEmpty) {

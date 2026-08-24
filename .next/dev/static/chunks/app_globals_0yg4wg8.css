@@ -32,6 +32,7 @@
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
     --color-red-600: #e40014;
+    --color-amber-300: #ffd236;
     --color-yellow-50: #fefce8;
     --color-yellow-100: #fef9c2;
     --color-yellow-200: #fff085;
@@ -43,6 +44,7 @@
     --color-blue-50: #eff6ff;
     --color-purple-100: #f3e8ff;
     --color-purple-700: #8200da;
+    --color-slate-900: #0f172b;
     --color-gray-100: #f3f4f6;
     --color-gray-200: #e5e7eb;
     --color-gray-400: #99a1af;
@@ -78,6 +80,7 @@
   @supports (color: lab(0% 0 0)) {
     :root, :host {
       --color-red-600: lab(48.4493% 77.4328 61.5452);
+      --color-amber-300: lab(86.4156% 6.13147 78.3961);
       --color-yellow-50: lab(98.6846% -1.79055 9.7766);
       --color-yellow-100: lab(97.3564% -4.51407 27.344);
       --color-yellow-200: lab(94.3433% -5.00429 52.9663);
@@ -89,6 +92,7 @@
       --color-blue-50: lab(96.492% -1.14644 -5.11479);
       --color-purple-100: lab(93.3333% 6.97437 -9.83434);
       --color-purple-700: lab(36.1758% 69.8525 -80.0381);
+      --color-slate-900: lab(7.78673% 1.82345 -15.0537);
       --color-gray-100: lab(96.1596% -.0823438 -1.13575);
       --color-gray-200: lab(91.6229% -.159115 -2.26791);
       --color-gray-400: lab(65.9269% -.832707 -8.17473);
@@ -707,6 +711,10 @@
     background-color: var(--color-red-600);
   }
 
+  .bg-slate-900 {
+    background-color: var(--color-slate-900);
+  }
+
   .bg-transparent {
     background-color: #0000;
   }
@@ -860,6 +868,10 @@
 
   .text-\[var\(--yellow-dark\)\] {
     color: var(--yellow-dark);
+  }
+
+  .text-amber-300 {
+    color: var(--color-amber-300);
   }
 
   .text-gray-400 {

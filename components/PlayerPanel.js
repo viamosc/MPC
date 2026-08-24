@@ -21,7 +21,9 @@ export default function PlayerPanel({
   onRequestJoinTeam,
   onLeaveTeam,
 }) {
+  const [customTeamName, setCustomTeamName] = useState("");
   const [selectedTeam, setSelectedTeam] = useState("");
+  
 
   if (!player) return null;
 
@@ -36,7 +38,7 @@ export default function PlayerPanel({
   ).sort();
 
   const teammates = player.team_id
-    ? players.filter((p) => p.team_id === player.team_id && p.id !== player.id)
+    ? players.filter((p) => p.team_id === player.team_id)
     : [];
 
   return (
@@ -124,14 +126,28 @@ export default function PlayerPanel({
           </div>
         ) : (
           <div className="space-y-3">
-            <button
-              onClick={() => onRequestCreateTeam(player)}
-              disabled={hasPendingRequest}
-              className="w-full text-sm font-medium rounded-lg px-4 py-2 bg-[var(--blue)] text-white hover:bg-[var(--blue-dark)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              + Create new team
-            </button>
-
+<div className="flex gap-2">
+  <input
+    type="text"
+    placeholder="Team name…"
+    value={customTeamName}
+    onChange={(e) => setCustomTeamName(e.target.value)}
+    disabled={hasPendingRequest}
+    className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm disabled:opacity-40"
+  />
+  <button
+    onClick={() => {
+      if (customTeamName.trim()) {
+        onRequestCreateTeam(player, customTeamName.trim());
+        setCustomTeamName("");
+      }
+    }}
+    disabled={hasPendingRequest || !customTeamName.trim()}
+    className="shrink-0 text-sm font-medium rounded-lg px-4 py-2 bg-[var(--blue)] text-white hover:bg-[var(--blue-dark)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+  >
+    + Create
+  </button>
+</div>
             {teamIds.length > 0 && (
               <div className="flex items-center gap-2">
                 <select

@@ -3,16 +3,10 @@
 import { useState } from "react";
 import { formatPlayerName } from "@/lib/formatName";
 
-export function nextTeamLabel(existingIds) {
-  const nums = existingIds
-    .map((id) => parseInt(String(id).replace(/^Team\s*/i, ""), 10))
-    .filter((n) => !Number.isNaN(n));
-  const next = (nums.length ? Math.max(...nums) : 0) + 1;
-  return `Team ${next}`;
-}
 export default function TeamManager({ players, onAddPlayer, onRemovePlayer, onDeleteTeam }) {
-  // Teams with no members yet only exist in local state until a player is added.
   const [pendingTeams, setPendingTeams] = useState([]);
+  const [newTeamInput, setNewTeamInput] = useState("");
+  const [showInput, setShowInput] = useState(false);
 
   const teamMap = {};
   for (const p of players) {
@@ -27,9 +21,15 @@ export default function TeamManager({ players, onAddPlayer, onRemovePlayer, onDe
   const teamIds = Object.keys(teamMap);
   const unassignedPresent = players.filter((p) => p.present && !p.team_id);
 
-    function handleAddTeam() {
-    setPendingTeams((prev) => [...prev, nextTeamLabel(teamIds)]);
+  function handleCreateTeam() {
+    const trimmed = newTeamInput.trim();
+    if (!trimmed) return;
+    if (!pendingTeams.includes(trimmed) && !teamMap[trimmed]) {
+      setPendingTeams((prev) => [...prev, trimmed]);
     }
+    setNewTeamInput("");
+    setShowInput(false);
+  }
 
   function handleDelete(teamId) {
     setPendingTeams((prev) => prev.filter((id) => id !== teamId));
@@ -42,10 +42,39 @@ export default function TeamManager({ players, onAddPlayer, onRemovePlayer, onDe
         <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
           Teams
         </h2>
-        <button onClick={handleAddTeam} className="text-sm text-[var(--blue)] font-medium">
-          + Team
-        </button>
+        {!showInput && (
+          <button onClick={() => setShowInput(true)} className="text-sm text-[var(--blue)] font-medium">
+            + Team
+          </button>
+        )}
       </div>
+
+      {showInput && (
+        <div className="flex gap-2 mb-4">
+          <input
+            type="text"
+            placeholder="Custom team name..."
+            value={newTeamInput}
+            onChange={(e) => setNewTeamInput(e.target.value)}
+            className="w-full rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs bg-white"
+          />
+          <button
+            onClick={handleCreateTeam}
+            className="rounded-lg bg-[var(--blue)] text-white text-xs font-medium px-3 py-1.5"
+          >
+            Add
+          </button>
+          <button
+            onClick={() => {
+              setShowInput(false);
+              setNewTeamInput("");
+            }}
+            className="text-xs text-gray-400"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
 
       {teamIds.length === 0 ? (
         <p className="text-sm text-gray-400">No teams yet.</p>
@@ -57,12 +86,12 @@ export default function TeamManager({ players, onAddPlayer, onRemovePlayer, onDe
             return (
               <li key={teamId} className="border border-[var(--border)] rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">
-                {teamId}{" "}
-                <span className={presentCount === 4 ? "text-green-600" : "text-gray-400"}>
-                    ({presentCount}/4 present)
-                </span>
-                </span>
+                  <span className="text-sm font-medium">
+                    {teamId}{" "}
+                    <span className={presentCount === 4 ? "text-green-600" : "text-gray-400"}>
+                      ({presentCount}/4 present)
+                    </span>
+                  </span>
                   <button
                     onClick={() => handleDelete(teamId)}
                     className="text-xs text-gray-400 hover:text-red-600"

@@ -480,13 +480,15 @@ const TIERS = [
     "newbie",
     "beginner",
     "novice",
-    "intermediate"
+    "intermediate",
+    "executive"
 ];
 const TIER_LABELS = {
     newbie: "New",
     beginner: "Beg",
     novice: "Nov",
-    intermediate: "Int"
+    intermediate: "Int",
+    executive: "Exec"
 };
 const TIER_INDEX = Object.fromEntries(TIERS.map((t, i)=>[
         t,

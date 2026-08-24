@@ -10,6 +10,7 @@ const TIER_COLORS = {
   beginner: "bg-blue-50 text-[var(--blue)]",
   novice: "bg-yellow-50 text-[var(--yellow-dark)]",
   intermediate: "bg-[var(--blue)] text-white",
+  executive: "bg-slate-900 text-amber-300",
 };
 
 const STATUS_LABELS = {
