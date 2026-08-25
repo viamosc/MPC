@@ -1,4 +1,12 @@
-{"timestamp":"00:00:00.747","source":"Server","level":"LOG","message":""}
-{"timestamp":"00:00:01.655","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
-{"timestamp":"00:00:01.668","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
-{"timestamp":"00:00:18.638","source":"Server","level":"LOG","message":"✓ Compiled in 32ms"}
+{"timestamp":"00:00:00.716","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:00:06.488","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:01:18.933","source":"Server","level":"LOG","message":"✓ Compiled in 25ms"}
+{"timestamp":"00:01:26.581","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:01:57.049","source":"Server","level":"LOG","message":"✓ Compiled in 19ms"}
+{"timestamp":"00:02:06.372","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:02:53.592","source":"Server","level":"LOG","message":"✓ Compiled in 20ms"}
+{"timestamp":"00:03:01.551","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:04:21.281","source":"Server","level":"LOG","message":"✓ Compiled in 18ms"}
+{"timestamp":"00:04:29.344","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:05:27.065","source":"Server","level":"LOG","message":"✓ Compiled in 14ms"}
+{"timestamp":"00:05:29.030","source":"Server","level":"LOG","message":"✓ Compiled in 15ms"}

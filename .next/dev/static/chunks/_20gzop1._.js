@@ -869,13 +869,13 @@ function DashboardPage() {
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "flex items-center p-0.5 rounded-lg border border-[var(--border)] bg-gray-100 text-xs font-medium",
+                                                        className: "flex items-center rounded-lg border border-[var(--border)] overflow-hidden",
                                                         children: [
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                                 type: "button",
                                                                 onClick: ()=>setAutoDuration(true),
                                                                 title: "Auto: 7+ full teams (courts + queues) -> 15m, else 20m",
-                                                                className: `px-2.5 py-1 rounded-md transition-all ${autoDuration ? "bg-white text-[var(--blue)] shadow-sm font-semibold" : "text-gray-500 hover:text-gray-800"}`,
+                                                                className: `px-3 py-1 text-sm font-medium transition-colors ${autoDuration ? "bg-[var(--blue)] text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`,
                                                                 children: "Auto"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/page.js",
@@ -885,7 +885,7 @@ function DashboardPage() {
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                                 type: "button",
                                                                 onClick: ()=>setAutoDuration(false),
-                                                                className: `px-2.5 py-1 rounded-md transition-all ${!autoDuration ? "bg-white text-gray-900 shadow-sm font-semibold" : "text-gray-500 hover:text-gray-800"}`,
+                                                                className: `px-3 py-1 text-sm font-medium border-l border-[var(--border)] transition-colors ${!autoDuration ? "bg-[var(--blue)] text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`,
                                                                 children: "Manual"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/page.js",
@@ -2973,15 +2973,17 @@ function SuspendedPanel({ players = [], onToggleSuspend, loading = false }) {
                                     }, void 0, false, {
                                         fileName: "[project]/components/SuspendedPanel.js",
                                         lineNumber: 113,
-                                        columnNumber: 15
+                                        columnNumber: 17
                                     }, this),
-                                    eligiblePlayers.map((p)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                    [
+                                        ...eligiblePlayers
+                                    ].sort((a, b)=>(a.name || "").localeCompare(b.name || "")).map((p)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
                                             value: p.id,
                                             children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$formatName$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["formatPlayerName"])(p.name)
                                         }, p.id, false, {
                                             fileName: "[project]/components/SuspendedPanel.js",
-                                            lineNumber: 115,
-                                            columnNumber: 17
+                                            lineNumber: 117,
+                                            columnNumber: 21
                                         }, this))
                                 ]
                             }, void 0, true, {
@@ -2996,7 +2998,7 @@ function SuspendedPanel({ players = [], onToggleSuspend, loading = false }) {
                                 children: "Confirm"
                             }, void 0, false, {
                                 fileName: "[project]/components/SuspendedPanel.js",
-                                lineNumber: 120,
+                                lineNumber: 122,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -3008,7 +3010,7 @@ function SuspendedPanel({ players = [], onToggleSuspend, loading = false }) {
                                 children: "Cancel"
                             }, void 0, false, {
                                 fileName: "[project]/components/SuspendedPanel.js",
-                                lineNumber: 127,
+                                lineNumber: 129,
                                 columnNumber: 13
                             }, this)
                         ]
@@ -3031,7 +3033,7 @@ function SuspendedPanel({ players = [], onToggleSuspend, loading = false }) {
                 className: "w-full rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm mb-3"
             }, void 0, false, {
                 fileName: "[project]/components/SuspendedPanel.js",
-                lineNumber: 140,
+                lineNumber: 142,
                 columnNumber: 7
             }, this),
             loading ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3039,14 +3041,14 @@ function SuspendedPanel({ players = [], onToggleSuspend, loading = false }) {
                 children: "Loading…"
             }, void 0, false, {
                 fileName: "[project]/components/SuspendedPanel.js",
-                lineNumber: 149,
+                lineNumber: 151,
                 columnNumber: 9
             }, this) : filteredSuspended.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                 className: "text-sm text-gray-400",
                 children: search ? "No matches." : "No suspended players."
             }, void 0, false, {
                 fileName: "[project]/components/SuspendedPanel.js",
-                lineNumber: 151,
+                lineNumber: 153,
                 columnNumber: 9
             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
                 className: "max-h-80 overflow-y-auto divide-y divide-[var(--border)]",
@@ -3055,12 +3057,12 @@ function SuspendedPanel({ players = [], onToggleSuspend, loading = false }) {
                         onToggleSuspend: onToggleSuspend
                     }, player.id, false, {
                         fileName: "[project]/components/SuspendedPanel.js",
-                        lineNumber: 157,
+                        lineNumber: 159,
                         columnNumber: 13
                     }, this))
             }, void 0, false, {
                 fileName: "[project]/components/SuspendedPanel.js",
-                lineNumber: 155,
+                lineNumber: 157,
                 columnNumber: 9
             }, this)
         ]

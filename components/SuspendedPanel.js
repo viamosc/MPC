@@ -110,12 +110,14 @@ export default function SuspendedPanel({
               onChange={(e) => setSelectedPlayerId(e.target.value)}
               className="w-full rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm bg-white focus:outline-none"
             >
-              <option value="">Choose player…</option>
-              {eligiblePlayers.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {formatPlayerName(p.name)}
-                </option>
-              ))}
+                <option value="">Choose player…</option>
+                {[...eligiblePlayers]
+                .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+                .map((p) => (
+                    <option key={p.id} value={p.id}>
+                    {formatPlayerName(p.name)}
+                    </option>
+                ))}
             </select>
             <button
               onClick={handleConfirmSuspend}

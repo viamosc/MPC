@@ -755,15 +755,15 @@ return () => {
                 </div>
 
                 {/* Auto / Manual Toggle */}
-                <div className="flex items-center p-0.5 rounded-lg border border-[var(--border)] bg-gray-100 text-xs font-medium">
+                <div className="flex items-center rounded-lg border border-[var(--border)] overflow-hidden">
                   <button
                     type="button"
                     onClick={() => setAutoDuration(true)}
                     title="Auto: 7+ full teams (courts + queues) -> 15m, else 20m"
-                    className={`px-2.5 py-1 rounded-md transition-all ${
+                    className={`px-3 py-1 text-sm font-medium transition-colors ${
                       autoDuration
-                        ? "bg-white text-[var(--blue)] shadow-sm font-semibold"
-                        : "text-gray-500 hover:text-gray-800"
+                      ? "bg-[var(--blue)] text-white"
+                      : "bg-white text-gray-600 hover:bg-gray-50"
                     }`}
                   >
                     Auto
@@ -771,10 +771,10 @@ return () => {
                   <button
                     type="button"
                     onClick={() => setAutoDuration(false)}
-                    className={`px-2.5 py-1 rounded-md transition-all ${
+                    className={`px-3 py-1 text-sm font-medium border-l border-[var(--border)] transition-colors ${
                       !autoDuration
-                        ? "bg-white text-gray-900 shadow-sm font-semibold"
-                        : "text-gray-500 hover:text-gray-800"
+                        ? "bg-[var(--blue)] text-white"
+                        : "bg-white text-gray-600 hover:bg-gray-50"
                     }`}
                   >
                     Manual
