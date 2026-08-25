@@ -676,42 +676,63 @@ return () => {
           <section>
             {isAdmin && (
               <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                <div className="flex items-center gap-2">
-                  <label className="text-sm text-gray-500">Match length</label>
-                  <div className="flex items-center rounded-lg border border-[var(--border)] overflow-hidden">
-                    {[15, 20].map((mins) => (
-                      <button
-                        key={mins}
-                        onClick={() => handleDurationChange(mins)}
-                        className={`px-3 py-1 text-sm ${
-                          duration === mins
-                            ? "bg-[var(--blue)] text-white"
-                            : "bg-white text-gray-600"
-                        }`}
-                      >
-                        {mins}m
-                      </button>
-                    ))}
-                    <input
-                      type="number"
-                      min="1"
-                      value={duration}
-                      onChange={(e) => handleDurationChange(Number(e.target.value) || 1)}
-                      className="w-16 px-2 py-1 text-sm border-l border-[var(--border)]"
-                    />
-                  </div>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-500">Match length</label>
+                
+                {/* Duration Buttons & Input (Disabled when in Auto mode) */}
+                <div className={`flex items-center rounded-lg border border-[var(--border)] overflow-hidden transition-opacity ${
+                  autoDuration ? "opacity-50 pointer-events-none bg-gray-50" : "opacity-100"
+                }`}>
+                  {[15, 20].map((mins) => (
+                    <button
+                      key={mins}
+                      type="button"
+                      onClick={() => handleDurationChange(mins, true)}
+                      className={`px-3 py-1 text-sm font-medium transition-colors ${
+                        duration === mins
+                          ? "bg-[var(--blue)] text-white"
+                          : "bg-white text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      {mins}m
+                    </button>
+                  ))}
+                  <input
+                    type="number"
+                    min="1"
+                    value={duration}
+                    onChange={(e) => handleDurationChange(Number(e.target.value) || 1, true)}
+                    className="w-16 px-2 py-1 text-sm border-l border-[var(--border)] bg-transparent text-center focus:outline-none"
+                  />
+                </div>
+
+                {/* Auto / Manual Toggle */}
+                <div className="flex items-center p-0.5 rounded-lg border border-[var(--border)] bg-gray-100 text-xs font-medium">
                   <button
-                    onClick={() => setAutoDuration((a) => !a)}
+                    type="button"
+                    onClick={() => setAutoDuration(true)}
                     title="Auto: 7+ full teams (courts + queues) -> 15m, else 20m"
-                    className={`text-xs font-medium px-2 py-1 rounded-lg border ${
+                    className={`px-2.5 py-1 rounded-md transition-all ${
                       autoDuration
-                        ? "border-[var(--blue)] text-[var(--blue)] bg-[var(--blue)]/10"
-                        : "border-[var(--border)] text-gray-400"
+                        ? "bg-white text-[var(--blue)] shadow-sm font-semibold"
+                        : "text-gray-500 hover:text-gray-800"
                     }`}
                   >
                     Auto
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setAutoDuration(false)}
+                    className={`px-2.5 py-1 rounded-md transition-all ${
+                      !autoDuration
+                        ? "bg-white text-gray-900 shadow-sm font-semibold"
+                        : "text-gray-500 hover:text-gray-800"
+                    }`}
+                  >
+                    Manual
+                  </button>
                 </div>
+              </div>
 
 
 

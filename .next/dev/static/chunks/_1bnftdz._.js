@@ -781,58 +781,79 @@ function DashboardPage() {
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/page.js",
                                                         lineNumber: 680,
-                                                        columnNumber: 19
+                                                        columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "flex items-center rounded-lg border border-[var(--border)] overflow-hidden",
+                                                        className: `flex items-center rounded-lg border border-[var(--border)] overflow-hidden transition-opacity ${autoDuration ? "opacity-50 pointer-events-none bg-gray-50" : "opacity-100"}`,
                                                         children: [
                                                             [
                                                                 15,
                                                                 20
                                                             ].map((mins)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                                                    onClick: ()=>handleDurationChange(mins),
-                                                                    className: `px-3 py-1 text-sm ${duration === mins ? "bg-[var(--blue)] text-white" : "bg-white text-gray-600"}`,
+                                                                    type: "button",
+                                                                    onClick: ()=>handleDurationChange(mins, true),
+                                                                    className: `px-3 py-1 text-sm font-medium transition-colors ${duration === mins ? "bg-[var(--blue)] text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`,
                                                                     children: [
                                                                         mins,
                                                                         "m"
                                                                     ]
                                                                 }, mins, true, {
                                                                     fileName: "[project]/app/dashboard/page.js",
-                                                                    lineNumber: 683,
-                                                                    columnNumber: 23
+                                                                    lineNumber: 687,
+                                                                    columnNumber: 21
                                                                 }, this)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
                                                                 type: "number",
                                                                 min: "1",
                                                                 value: duration,
-                                                                onChange: (e)=>handleDurationChange(Number(e.target.value) || 1),
-                                                                className: "w-16 px-2 py-1 text-sm border-l border-[var(--border)]"
+                                                                onChange: (e)=>handleDurationChange(Number(e.target.value) || 1, true),
+                                                                className: "w-16 px-2 py-1 text-sm border-l border-[var(--border)] bg-transparent text-center focus:outline-none"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/page.js",
-                                                                lineNumber: 695,
-                                                                columnNumber: 21
+                                                                lineNumber: 700,
+                                                                columnNumber: 19
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/dashboard/page.js",
-                                                        lineNumber: 681,
-                                                        columnNumber: 19
+                                                        lineNumber: 683,
+                                                        columnNumber: 17
                                                     }, this),
-                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                                        onClick: ()=>setAutoDuration((a)=>!a),
-                                                        title: "Auto: 7+ full teams (courts + queues) -> 15m, else 20m",
-                                                        className: `text-xs font-medium px-2 py-1 rounded-lg border ${autoDuration ? "border-[var(--blue)] text-[var(--blue)] bg-[var(--blue)]/10" : "border-[var(--border)] text-gray-400"}`,
-                                                        children: "Auto"
-                                                    }, void 0, false, {
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                        className: "flex items-center p-0.5 rounded-lg border border-[var(--border)] bg-gray-100 text-xs font-medium",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                                type: "button",
+                                                                onClick: ()=>setAutoDuration(true),
+                                                                title: "Auto: 7+ full teams (courts + queues) -> 15m, else 20m",
+                                                                className: `px-2.5 py-1 rounded-md transition-all ${autoDuration ? "bg-white text-[var(--blue)] shadow-sm font-semibold" : "text-gray-500 hover:text-gray-800"}`,
+                                                                children: "Auto"
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/app/dashboard/page.js",
+                                                                lineNumber: 711,
+                                                                columnNumber: 19
+                                                            }, this),
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                                type: "button",
+                                                                onClick: ()=>setAutoDuration(false),
+                                                                className: `px-2.5 py-1 rounded-md transition-all ${!autoDuration ? "bg-white text-gray-900 shadow-sm font-semibold" : "text-gray-500 hover:text-gray-800"}`,
+                                                                children: "Manual"
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/app/dashboard/page.js",
+                                                                lineNumber: 723,
+                                                                columnNumber: 19
+                                                            }, this)
+                                                        ]
+                                                    }, void 0, true, {
                                                         fileName: "[project]/app/dashboard/page.js",
-                                                        lineNumber: 703,
-                                                        columnNumber: 19
+                                                        lineNumber: 710,
+                                                        columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/dashboard/page.js",
                                                 lineNumber: 679,
-                                                columnNumber: 17
+                                                columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "flex items-center gap-2",
@@ -844,7 +865,7 @@ function DashboardPage() {
                                                         children: "▶ Play — send queues 1–3 to courts"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/page.js",
-                                                        lineNumber: 719,
+                                                        lineNumber: 740,
                                                         columnNumber: 19
                                                     }, this),
                                                     autoPlayIn != null && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -856,13 +877,13 @@ function DashboardPage() {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/dashboard/page.js",
-                                                        lineNumber: 727,
+                                                        lineNumber: 748,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/dashboard/page.js",
-                                                lineNumber: 718,
+                                                lineNumber: 739,
                                                 columnNumber: 17
                                             }, this)
                                         ]
@@ -881,7 +902,7 @@ function DashboardPage() {
                                         readOnly: !isAdmin
                                     }, void 0, false, {
                                         fileName: "[project]/app/dashboard/page.js",
-                                        lineNumber: 735,
+                                        lineNumber: 756,
                                         columnNumber: 13
                                     }, this)
                                 ]
@@ -904,7 +925,7 @@ function DashboardPage() {
                                 children: playersError
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 750,
+                                lineNumber: 771,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$RequestsPanel$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -913,7 +934,7 @@ function DashboardPage() {
                                 onDeny: handleDenyRequest
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 753,
+                                lineNumber: 774,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$PresentPanel$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -929,13 +950,13 @@ function DashboardPage() {
                                 onQueueTeam: handleQueueTeam
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 759,
+                                lineNumber: 780,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/dashboard/page.js",
-                        lineNumber: 748,
+                        lineNumber: 769,
                         columnNumber: 11
                     }, this),
                     !isAdmin && currentPlayer && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("aside", {
@@ -945,7 +966,7 @@ function DashboardPage() {
                                 children: playersError
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 777,
+                                lineNumber: 798,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$PlayerPanel$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -960,13 +981,13 @@ function DashboardPage() {
                                 onLeaveTeam: handleLeaveTeamSelf
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 780,
+                                lineNumber: 801,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/dashboard/page.js",
-                        lineNumber: 775,
+                        lineNumber: 796,
                         columnNumber: 11
                     }, this),
                     editingProfile && currentPlayer && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$EditProfileModal$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -981,7 +1002,7 @@ function DashboardPage() {
                         }
                     }, void 0, false, {
                         fileName: "[project]/app/dashboard/page.js",
-                        lineNumber: 795,
+                        lineNumber: 816,
                         columnNumber: 3
                     }, this)
                 ]
