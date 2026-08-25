@@ -128,6 +128,18 @@ useEffect(() => {
   return () => supabase.removeChannel(channel);
 }, [session, refreshPlayers]);
 
+function playBuzzer() {
+  const audio = new Audio("/sounds/alarm.mp3");
+  audio.volume = 0.8;
+  
+  audio.play().then(() => {
+    setTimeout(() => {
+      audio.pause();
+      audio.currentTime = 0;
+    }, 10000); // 10,000 ms = 10 seconds
+  }).catch(() => {});
+}
+
   function persistQueues(next) {
     setQueues(next);
     saveQueues(next).catch((err) => setPlayersError(err.message));
@@ -169,6 +181,32 @@ useEffect(() => {
         players: q.players.filter((p) => p.id !== player.id),
       }));
       persistQueues(next);
+    }
+  }
+
+  async function handleMarkAllAbsent() {
+    const confirmed = window.confirm(
+      "Are you sure you want to mark ALL present players as absent?"
+    );
+    if (!confirmed) return;
+
+    const presentPlayers = players.filter((p) => p.present);
+    if (presentPlayers.length === 0) return;
+
+    // Optimistically set all players as absent locally
+    const updatedPlayers = players.map((p) => ({ ...p, present: false }));
+    setPlayers(updatedPlayers);
+
+    // Clear queues
+    persistQueues([]);
+
+    // Update backend
+    try {
+      await Promise.all(
+        presentPlayers.map((p) => setPlayerPresent(p.id, false))
+      );
+    } catch (err) {
+      setPlayersError(err.message);
     }
   }
 
@@ -480,7 +518,10 @@ return () => {
       const expired = courts.some(
         (c) => c.running && c.endsAt && Date.now() >= c.endsAt
       );
-      if (expired) handleMatchFinished();
+      if (expired){
+        playBuzzer()
+        handleMatchFinished();
+      } 
     }, 1000);
     return () => clearInterval(interval);
   }, [isAdmin, courts, queues, players]);
@@ -698,6 +739,7 @@ return () => {
               statusMap={statusMap}
               onTogglePresent={handleTogglePresent}
               onQueuePlayer={handleQueuePlayer}
+              onMarkAllAbsent={handleMarkAllAbsent}
               loading={loadingPlayers}
               onAddPlayerToTeam={handleAddPlayerToTeam}
               onRemovePlayerFromTeam={handleRemovePlayerFromTeam}

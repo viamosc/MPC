@@ -47,11 +47,19 @@ function PlayerRow({ p, status, onTogglePresent, onQueuePlayer }) {
       </div>
       <div className="flex items-center gap-1.5 shrink-0">
         <button
-          onClick={() => onTogglePresent(p)}
+          onClick={() => {
+            if (p.present) {
+              const confirmed = window.confirm(
+                `Are you sure you want to mark ${formatPlayerName(p.name)} as absent?`
+              );
+              if (!confirmed) return;
+            }
+            onTogglePresent(p);
+          }}
           className={`text-xs font-medium rounded-full px-3 py-1 transition-colors ${
             p.present
               ? "bg-gray-100 text-gray-500 hover:bg-gray-200"
-              : "bg-green-600 text-white hover:bg-green-70"
+              : "bg-green-600 text-white hover:bg-green-700"
           }`}
         >
           {p.present ? "Mark as Absent" : "Mark as Present"}
@@ -111,6 +119,7 @@ export default function PresentPanel({
   statusMap,
   onTogglePresent,
   onQueuePlayer,
+  onMarkAllAbsent,
   loading,
   // team management passthrough
   onAddPlayerToTeam,
@@ -134,6 +143,16 @@ export default function PresentPanel({
   return (
     <div className="space-y-4">
       <CollapsiblePanel title={`Present (${present.length})`}>
+        {present.length > 0 && (
+          <div className="flex justify-end mb-2">
+            <button
+              onClick={onMarkAllAbsent}
+              className="text-xs font-medium text-red-600 hover:text-red-700 hover:underline transition-colors"
+            >
+              Mark all absent
+            </button>
+          </div>
+        )}
         <input
           type="text"
           value={presentSearch}

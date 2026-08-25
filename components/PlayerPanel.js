@@ -81,12 +81,19 @@ export default function PlayerPanel({
         </div>
 
         {player.present ? (
-          <button
-            onClick={() => onMarkAbsent(player)}
-            className="w-full text-sm font-medium rounded-lg px-4 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-          >
-            Mark myself absent
-          </button>
+        <button
+          onClick={() => {
+            const confirmed = window.confirm(
+              "Are you sure you want to mark yourself as absent?"
+            );
+            if (confirmed) {
+              onMarkAbsent(player);
+            }
+          }}
+          className="w-full text-sm font-medium rounded-lg px-4 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+        >
+          Mark myself absent
+        </button>
         ) : (
           <button
             onClick={() => onRequestPresent(player)}

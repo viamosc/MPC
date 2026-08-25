@@ -1,3 +1,36 @@
-{"timestamp":"00:00:00.705","source":"Server","level":"LOG","message":""}
-{"timestamp":"00:00:01.438","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
-{"timestamp":"00:01:30.340","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:00:00.698","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:00:02.615","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:02:54.871","source":"Server","level":"LOG","message":"✓ Compiled in 20ms"}
+{"timestamp":"00:03:53.780","source":"Server","level":"LOG","message":"✓ Compiled in 16ms"}
+{"timestamp":"00:04:59.189","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:07:27.696","source":"Server","level":"LOG","message":"✓ Compiled in 25ms"}
+{"timestamp":"00:08:01.513","source":"Server","level":"LOG","message":"✓ Compiled in 18ms"}
+{"timestamp":"00:13:50.196","source":"Server","level":"LOG","message":"✓ Compiled in 14ms"}
+{"timestamp":"00:14:29.997","source":"Server","level":"LOG","message":"✓ Compiled in 14ms"}
+{"timestamp":"00:14:32.450","source":"Server","level":"LOG","message":"✓ Compiled in 13ms"}
+{"timestamp":"00:15:23.689","source":"Server","level":"LOG","message":"✓ Compiled in 15ms"}
+{"timestamp":"00:17:47.679","source":"Server","level":"LOG","message":"✓ Compiled in 18ms"}
+{"timestamp":"00:19:31.546","source":"Server","level":"LOG","message":"✓ Compiled in 24ms"}
+{"timestamp":"00:19:32.532","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload due to a runtime error."}
+{"timestamp":"00:19:32.575","source":"Server","level":"LOG","message":"✓ Compiled in 15ms"}
+{"timestamp":"00:19:32.670","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:19:35.416","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:19:45.530","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:19:55.998","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload due to a runtime error."}
+{"timestamp":"00:19:56.047","source":"Server","level":"LOG","message":"✓ Compiled in 15ms"}
+{"timestamp":"00:19:56.110","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:22:02.644","source":"Server","level":"LOG","message":"✓ Compiled in 13ms"}
+{"timestamp":"00:22:02.679","source":"Browser","level":"ERROR","message":"Uncaught ReferenceError: presentCount is not defined\n    at PresentPanel (components/PresentPanel.js:147:21)\n    at DashboardPage (app/dashboard/page.js:722:13)\n  \u001b[90m145 |\u001b[0m       <div className=\u001b[32m\"flex items-center justify-between pb-2 border-b border-[var(--border)]\"\u001b[0m>\n  \u001b[90m146 |\u001b[0m         <h3 className=\u001b[32m\"text-sm font-semibold text-gray-700\"\u001b[0m>\n\u001b[31m\u001b[1m>\u001b[0m \u001b[90m147 |\u001b[0m           \u001b[33mPlayers\u001b[0m ({presentCount} \u001b[33mPresent\u001b[0m)\n  \u001b[90m    |\u001b[0m                     \u001b[31m\u001b[1m^\u001b[0m\n  \u001b[90m148 |\u001b[0m         </h3>\n  \u001b[90m149 |\u001b[0m         {presentCount > \u001b[35m0\u001b[0m && (\n  \u001b[90m150 |\u001b[0m           <button"}
+{"timestamp":"00:22:02.680","source":"Server","level":"ERROR","message":"[browser] \"\\u001b[31mUncaught ReferenceError: presentCount is not defined\\u001b[39m\\n\\u001b[31m    at PresentPanel (components/PresentPanel.js:147:21)\\n    at DashboardPage (app/dashboard/page.js:722:13)\\u001b[39m\\n  \\u001b[90m145 |\\u001b[0m       <div className=\\u001b[32m\\\"flex items-center justify-between pb-2 border-b border-[var(--border)]\\\"\\u001b[0m>\\n  \\u001b[90m146 |\\u001b[0m         <h3 className=\\u001b[32m\\\"text-sm font-semibold text-gray-700\\\"\\u001b[0m>\\n\\u001b[31m\\u001b[1m>\\u001b[0m \\u001b[90m147 |\\u001b[0m           \\u001b[33mPlayers\\u001b[0m ({presentCount} \\u001b[33mPresent\\u001b[0m)\\n  \\u001b[90m    |\\u001b[0m                     \\u001b[31m\\u001b[1m^\\u001b[0m\\n  \\u001b[90m148 |\\u001b[0m         </h3>\\n  \\u001b[90m149 |\\u001b[0m         {presentCount > \\u001b[35m0\\u001b[0m && (\\n  \\u001b[90m150 |\\u001b[0m           <button\""}
+{"timestamp":"00:25:01.305","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload due to a runtime error."}
+{"timestamp":"00:25:01.364","source":"Server","level":"LOG","message":"✓ Compiled in 15ms"}
+{"timestamp":"00:25:01.448","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:25:34.001","source":"Server","level":"LOG","message":"✓ Compiled in 23ms"}
+{"timestamp":"00:25:52.712","source":"Server","level":"LOG","message":"✓ Compiled in 19ms"}
+{"timestamp":"00:28:54.046","source":"Server","level":"LOG","message":"✓ Compiled in 17ms"}
+{"timestamp":"00:29:38.189","source":"Server","level":"LOG","message":"✓ Compiled in 18ms"}
+{"timestamp":"00:32:38.170","source":"Server","level":"LOG","message":"✓ Compiled in 17ms"}
+{"timestamp":"00:32:39.788","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:35:18.740","source":"Server","level":"LOG","message":"✓ Compiled in 17ms"}
+{"timestamp":"00:37:55.761","source":"Server","level":"LOG","message":"✓ Compiled in 17ms"}
+{"timestamp":"00:39:56.219","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}

@@ -128,12 +128,14 @@ export default function TeamManager({ players, onAddPlayer, onRemovePlayer, onDe
                     }}
                     className="w-full rounded-lg border border-[var(--border)] px-2 py-1 text-xs bg-white"
                   >
-                    <option value="">+ Add player…</option>
-                    {unassignedPresent.map((p) => (
+                  <option value="">+ Add player…</option>
+                  {[...unassignedPresent]
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((p) => (
                       <option key={p.id} value={p.id}>
                         {formatPlayerName(p.name)}
                       </option>
-                    ))}
+                    ))}     
                   </select>
                 )}
               </li>
