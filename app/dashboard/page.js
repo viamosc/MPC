@@ -56,10 +56,11 @@ export default function DashboardPage() {
   const [autoPlayIn, setAutoPlayIn] = useState(null);
   const [autoDuration, setAutoDuration] = useState(true);
   const [editingProfile, setEditingProfile] = useState(false);
+  const activeCourts = courts.filter((c) => c.active !== false);
   const courtsEmpty = courts.every((c) => !c.running && (c.players || []).length === 0);
   const canPlay =
     courtsEmpty &&
-    queues.length >= 3 &&
+    queues.length >= activeCourts.length &&
     queues[0]?.players.length === 4 &&
     queues[1]?.players.length === 4 &&
     queues[2]?.players.length === 4;
@@ -149,6 +150,13 @@ function playBuzzer() {
     setCourts(next);
     saveCourts(next).catch((err) => setPlayersError(err.message));
   }
+
+  function handleToggleCourtActive(courtId) {
+    const nextCourts = courts.map((c) =>
+      c.id === courtId ? { ...c, active: c.active === false ? true : false } : c
+    );
+    persistCourts(nextCourts);
+  } 
 
   function getAvailable(playersList, queuesList, courtsList) {
     const queuedIds = new Set(
@@ -385,26 +393,35 @@ function playBuzzer() {
     persistQueues([...queues, { id: newQueueId(), players: [] }]);
   }
 
-  function handlePlay() {
-    if (queues.length < 3) return;
-    const [q1, q2, q3, ...rest] = queues;
-    if (q1.players.length !== 4 || q2.players.length !== 4 || q3.players.length !== 4) return;
+function handlePlay() {
+  const activeList = courts.filter((c) => c.active !== false);
+  if (activeList.length === 0 || queues.length < activeList.length) return;
 
-    const endsAt = Date.now() + duration * 60 * 1000;
-    const nextCourts = courts.map((court, i) => {
-      const q = [q1, q2, q3][i];
-      return {
-        ...court,
-        players: q.players.map((p) => ({ id: p.id, name: p.name })),
-        queueLabel: `Queue ${i + 1}`,
-        endsAt,
-        running: true,
-      };
-    });
+  const queuesToPlay = queues.slice(0, activeList.length);
+  const isEveryQueueFull = queuesToPlay.every((q) => q.players.length === 4);
+  if (!isEveryQueueFull) return;
 
-    persistCourts(nextCourts);
-    persistQueues(rest);
-  }
+  const endsAt = Date.now() + duration * 60 * 1000;
+  let activeIndex = 0;
+
+  const nextCourts = courts.map((court) => {
+    if (court.active === false) return court;
+
+    const q = queuesToPlay[activeIndex];
+    activeIndex++;
+
+    return {
+      ...court,
+      players: q.players.map((p) => ({ id: p.id, name: p.name })),
+      queueLabel: `Queue ${activeIndex}`,
+      endsAt,
+      running: true,
+    };
+  });
+
+  persistCourts(nextCourts);
+  persistQueues(queues.slice(activeList.length));
+}
 
   function handleMatchFinished() {
     const playingCourts = courts.filter((c) => c.players.length > 0);
@@ -646,7 +663,12 @@ return () => {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {courts.map((court) => (
-                <CourtCard key={court.id} court={court} />
+                <CourtCard
+                  key={court.id}
+                  court={court}
+                  isAdmin={isAdmin}
+                  onToggleActive={handleToggleCourtActive}
+                />
               ))}
             </div>
           </section>
