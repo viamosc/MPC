@@ -790,7 +790,7 @@ return () => {
                     disabled={!canPlay}
                     className="rounded-lg bg-[var(--blue)] text-white font-medium text-sm px-5 py-2 hover:bg-[var(--blue-dark)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    ▶ Play — send queues 1–3 to courts
+                    ▶ Play
                   </button>
                   {autoPlayIn != null && (
                     <span className="text-xs text-gray-400">

@@ -867,7 +867,7 @@ function DashboardPage() {
                                                         onClick: handlePlay,
                                                         disabled: !canPlay,
                                                         className: "rounded-lg bg-[var(--blue)] text-white font-medium text-sm px-5 py-2 hover:bg-[var(--blue-dark)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed",
-                                                        children: "▶ Play — send queues 1–3 to courts"
+                                                        children: "▶ Play"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/page.js",
                                                         lineNumber: 788,
