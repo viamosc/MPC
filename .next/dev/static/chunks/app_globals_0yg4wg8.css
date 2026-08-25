@@ -486,6 +486,10 @@
     height: calc(var(--spacing) * 7);
   }
 
+  .max-h-48 {
+    max-height: calc(var(--spacing) * 48);
+  }
+
   .max-h-80 {
     max-height: calc(var(--spacing) * 80);
   }
@@ -693,6 +697,10 @@
     border-color: var(--color-green-200);
   }
 
+  .border-red-100 {
+    border-color: var(--color-red-100);
+  }
+
   .border-red-200 {
     border-color: var(--color-red-200);
   }
@@ -767,6 +775,20 @@
 
   .bg-red-50 {
     background-color: var(--color-red-50);
+  }
+
+  .bg-red-50\/50 {
+    background-color: #fef2f280;
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .bg-red-50\/50 {
+      background-color: color-mix(in oklab, var(--color-red-50) 50%, transparent);
+    }
+  }
+
+  .bg-red-100 {
+    background-color: var(--color-red-100);
   }
 
   .bg-red-600 {
@@ -989,6 +1011,10 @@
     color: var(--color-red-600);
   }
 
+  .text-red-700 {
+    color: var(--color-red-700);
+  }
+
   .text-white {
     color: var(--color-white);
   }
@@ -999,6 +1025,15 @@
 
   .italic {
     font-style: italic;
+  }
+
+  .line-through {
+    text-decoration-line: line-through;
+  }
+
+  .decoration-gray-400 {
+    -webkit-text-decoration-color: var(--color-gray-400);
+    text-decoration-color: var(--color-gray-400);
   }
 
   .opacity-50 {
@@ -1069,12 +1104,20 @@
       background-color: var(--color-red-100);
     }
 
+    .hover\:bg-red-700:hover {
+      background-color: var(--color-red-700);
+    }
+
     .hover\:text-\[var\(--blue\)\]:hover {
       color: var(--blue);
     }
 
     .hover\:text-gray-600:hover {
       color: var(--color-gray-600);
+    }
+
+    .hover\:text-gray-700:hover {
+      color: var(--color-gray-700);
     }
 
     .hover\:text-gray-800:hover {

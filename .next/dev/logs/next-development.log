@@ -1,3 +1,19 @@
-{"timestamp":"00:00:00.715","source":"Server","level":"LOG","message":""}
-{"timestamp":"00:00:02.153","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
-{"timestamp":"00:00:36.789","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:00:00.713","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:00:04.289","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:00:26.632","source":"Server","level":"LOG","message":"✓ Compiled in 31ms"}
+{"timestamp":"00:00:30.332","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:00:31.302","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:00:42.172","source":"Server","level":"LOG","message":"✓ Compiled in 22ms"}
+{"timestamp":"00:00:48.389","source":"Server","level":"LOG","message":"✓ Compiled in 22ms"}
+{"timestamp":"00:00:51.135","source":"Server","level":"LOG","message":"✓ Compiled in 21ms"}
+{"timestamp":"00:02:36.269","source":"Server","level":"LOG","message":"✓ Compiled in 17ms"}
+{"timestamp":"00:03:37.669","source":"Server","level":"LOG","message":"✓ Compiled in 33ms"}
+{"timestamp":"00:03:48.896","source":"Server","level":"LOG","message":"✓ Compiled in 22ms"}
+{"timestamp":"00:03:53.620","source":"Server","level":"LOG","message":"✓ Compiled in 16ms"}
+{"timestamp":"00:04:04.005","source":"Server","level":"LOG","message":"✓ Compiled in 31ms"}
+{"timestamp":"00:04:04.140","source":"Browser","level":"ERROR","message":"Uncaught Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: object. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.\n\nCheck the render method of `DashboardPage`.\n    at DashboardPage (app/dashboard/page.js:819:13)\n  \u001b[90m817 |\u001b[0m               onQueueTeam={handleQueueTeam}\n  \u001b[90m818 |\u001b[0m             />\n\u001b[31m\u001b[1m>\u001b[0m \u001b[90m819 |\u001b[0m             <\u001b[33mSuspendedPanel\u001b[0m\n  \u001b[90m    |\u001b[0m             \u001b[31m\u001b[1m^\u001b[0m\n  \u001b[90m820 |\u001b[0m     players={players}\n  \u001b[90m821 |\u001b[0m     onToggleSuspend={handleToggleSuspendPlayer}\n  \u001b[90m822 |\u001b[0m     loading={loadingPlayers}"}
+{"timestamp":"00:04:04.140","source":"Server","level":"ERROR","message":"[browser] \"\\u001b[31mUncaught Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: object. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.\\n\\nCheck the render method of `DashboardPage`.\\u001b[39m\\n\\u001b[31m    at DashboardPage (app/dashboard/page.js:819:13)\\u001b[39m\\n  \\u001b[90m817 |\\u001b[0m               onQueueTeam={handleQueueTeam}\\n  \\u001b[90m818 |\\u001b[0m             />\\n\\u001b[31m\\u001b[1m>\\u001b[0m \\u001b[90m819 |\\u001b[0m             <\\u001b[33mSuspendedPanel\\u001b[0m\\n  \\u001b[90m    |\\u001b[0m             \\u001b[31m\\u001b[1m^\\u001b[0m\\n  \\u001b[90m820 |\\u001b[0m     players={players}\\n  \\u001b[90m821 |\\u001b[0m     onToggleSuspend={handleToggleSuspendPlayer}\\n  \\u001b[90m822 |\\u001b[0m     loading={loadingPlayers}\""}
+{"timestamp":"00:04:42.199","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload due to a runtime error."}
+{"timestamp":"00:04:42.238","source":"Server","level":"LOG","message":"✓ Compiled in 28ms"}
+{"timestamp":"00:04:42.374","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"00:06:10.696","source":"Server","level":"LOG","message":"✓ Compiled in 29ms"}

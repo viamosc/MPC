@@ -238,6 +238,8 @@ __turbopack_context__.s([
     ()=>registerPlayer,
     "setPlayerPresent",
     ()=>setPlayerPresent,
+    "setPlayerSuspended",
+    ()=>setPlayerSuspended,
     "setPlayerTeam",
     ()=>setPlayerTeam,
     "subscribeToPlayers",
@@ -338,6 +340,13 @@ async function updatePlayer(id, { name, email, skill_level, password }) {
         ok: true,
         player: data
     };
+}
+async function setPlayerSuspended(playerId, suspended) {
+    const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from("players").update({
+        suspended
+    }).eq("id", playerId).select().single();
+    if (error) throw error;
+    return data;
 }
 }),
 "[project]/lib/store.js [app-ssr] (ecmascript)", ((__turbopack_context__) => {

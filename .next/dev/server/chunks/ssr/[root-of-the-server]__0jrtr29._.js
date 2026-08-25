@@ -35,6 +35,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$TeamManager$2e
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/cache.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/supabaseClient.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$EditProfileModal$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/EditProfileModal.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$SuspendedPanel$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/SuspendedPanel.js [app-ssr] (ecmascript)");
 "use client";
 ;
 ;
@@ -934,6 +935,15 @@ function DashboardPage() {
                                 fileName: "[project]/app/dashboard/page.js",
                                 lineNumber: 807,
                                 columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$SuspendedPanel$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                                players: players,
+                                onToggleSuspend: handleToggleSuspendPlayer,
+                                loading: loadingPlayers
+                            }, void 0, false, {
+                                fileName: "[project]/app/dashboard/page.js",
+                                lineNumber: 819,
+                                columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
@@ -948,7 +958,7 @@ function DashboardPage() {
                                 children: playersError
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 825,
+                                lineNumber: 830,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$PlayerPanel$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -963,13 +973,13 @@ function DashboardPage() {
                                 onLeaveTeam: handleLeaveTeamSelf
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 828,
+                                lineNumber: 833,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/dashboard/page.js",
-                        lineNumber: 823,
+                        lineNumber: 828,
                         columnNumber: 11
                     }, this),
                     editingProfile && currentPlayer && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$EditProfileModal$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -984,7 +994,7 @@ function DashboardPage() {
                         }
                     }, void 0, false, {
                         fileName: "[project]/app/dashboard/page.js",
-                        lineNumber: 843,
+                        lineNumber: 848,
                         columnNumber: 3
                     }, this)
                 ]
@@ -2439,6 +2449,301 @@ function RequestsPanel({ requests, onApprove, onDeny }) {
     }, this);
 }
 }),
+"[project]/components/SuspendedPanel.js [app-ssr] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>SuspendedPanel
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$tiers$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/tiers.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$formatName$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/formatName.js [app-ssr] (ecmascript)");
+"use client";
+;
+;
+;
+;
+const TIER_COLORS = {
+    newbie: "bg-gray-100 text-gray-600",
+    beginner: "bg-blue-50 text-[var(--blue)]",
+    novice: "bg-yellow-50 text-[var(--yellow-dark)]",
+    intermediate: "bg-[var(--blue)] text-white",
+    executive: "bg-slate-900 text-amber-300"
+};
+function SuspendedPlayerRow({ player, onToggleSuspend }) {
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+        className: "flex items-center justify-between gap-2 text-sm py-2",
+        children: [
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "min-w-0",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                        className: "break-words font-medium text-gray-800 line-through decoration-gray-400",
+                        children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$formatName$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["formatPlayerName"])(player.name)
+                    }, void 0, false, {
+                        fileName: "[project]/components/SuspendedPanel.js",
+                        lineNumber: 19,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "flex items-center gap-1.5 mt-0.5",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                className: `inline-block text-[11px] font-medium rounded-full px-2 py-0.5 ${TIER_COLORS[player.skill_level] ?? "bg-gray-100 text-gray-600"}`,
+                                children: __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$tiers$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TIER_LABELS"][player.skill_level]
+                            }, void 0, false, {
+                                fileName: "[project]/components/SuspendedPanel.js",
+                                lineNumber: 23,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                className: "inline-block text-[11px] font-medium rounded-full px-2 py-0.5 bg-red-100 text-red-700",
+                                children: "Suspended"
+                            }, void 0, false, {
+                                fileName: "[project]/components/SuspendedPanel.js",
+                                lineNumber: 30,
+                                columnNumber: 11
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/components/SuspendedPanel.js",
+                        lineNumber: 22,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/components/SuspendedPanel.js",
+                lineNumber: 18,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "flex items-center gap-1.5 shrink-0",
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                    onClick: ()=>onToggleSuspend(player, false),
+                    className: "text-xs font-medium rounded-full px-3 py-1 bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors",
+                    children: "Unsuspend"
+                }, void 0, false, {
+                    fileName: "[project]/components/SuspendedPanel.js",
+                    lineNumber: 36,
+                    columnNumber: 9
+                }, this)
+            }, void 0, false, {
+                fileName: "[project]/components/SuspendedPanel.js",
+                lineNumber: 35,
+                columnNumber: 7
+            }, this)
+        ]
+    }, void 0, true, {
+        fileName: "[project]/components/SuspendedPanel.js",
+        lineNumber: 17,
+        columnNumber: 5
+    }, this);
+}
+function CollapsiblePanel({ title, children, defaultOpen = false }) {
+    const [open, setOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(defaultOpen);
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+        className: "bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5",
+        children: [
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                onClick: ()=>setOpen((o)=>!o),
+                className: "w-full flex items-center justify-between",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
+                        className: "text-sm font-medium text-gray-500 uppercase tracking-wide",
+                        children: title
+                    }, void 0, false, {
+                        fileName: "[project]/components/SuspendedPanel.js",
+                        lineNumber: 55,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                        className: "text-gray-400 text-xs",
+                        children: open ? "▲" : "▼"
+                    }, void 0, false, {
+                        fileName: "[project]/components/SuspendedPanel.js",
+                        lineNumber: 58,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/components/SuspendedPanel.js",
+                lineNumber: 51,
+                columnNumber: 7
+            }, this),
+            open && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "mt-4",
+                children: children
+            }, void 0, false, {
+                fileName: "[project]/components/SuspendedPanel.js",
+                lineNumber: 60,
+                columnNumber: 16
+            }, this)
+        ]
+    }, void 0, true, {
+        fileName: "[project]/components/SuspendedPanel.js",
+        lineNumber: 50,
+        columnNumber: 5
+    }, this);
+}
+function SuspendedPanel({ players = [], onToggleSuspend, loading = false }) {
+    const [search, setSearch] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
+    const [selectedPlayerId, setSelectedPlayerId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
+    const [isAdding, setIsAdding] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const suspendedPlayers = players.filter((p)=>p.suspended);
+    const eligiblePlayers = players.filter((p)=>!p.suspended);
+    const filteredSuspended = suspendedPlayers.filter((p)=>p.name.toLowerCase().includes(search.toLowerCase()));
+    const handleConfirmSuspend = ()=>{
+        if (!selectedPlayerId) return;
+        const playerToSuspend = players.find((p)=>p.id === selectedPlayerId);
+        if (playerToSuspend) {
+            onToggleSuspend(playerToSuspend, true);
+            setSelectedPlayerId("");
+            setIsAdding(false);
+        }
+    };
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(CollapsiblePanel, {
+        title: `Suspended (${suspendedPlayers.length})`,
+        children: [
+            !isAdding ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "flex justify-end mb-3",
+                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                    onClick: ()=>setIsAdding(true),
+                    className: "text-xs font-medium text-red-600 hover:text-red-700 hover:underline transition-colors",
+                    children: "+ Suspend player"
+                }, void 0, false, {
+                    fileName: "[project]/components/SuspendedPanel.js",
+                    lineNumber: 95,
+                    columnNumber: 11
+                }, this)
+            }, void 0, false, {
+                fileName: "[project]/components/SuspendedPanel.js",
+                lineNumber: 94,
+                columnNumber: 9
+            }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "mb-4 p-3 rounded-lg border border-red-200 bg-red-50/50 space-y-2",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                        className: "block text-xs font-medium text-gray-700",
+                        children: "Select player to suspend"
+                    }, void 0, false, {
+                        fileName: "[project]/components/SuspendedPanel.js",
+                        lineNumber: 104,
+                        columnNumber: 11
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "flex items-center gap-2",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
+                                value: selectedPlayerId,
+                                onChange: (e)=>setSelectedPlayerId(e.target.value),
+                                className: "w-full rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm bg-white focus:outline-none",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                        value: "",
+                                        children: "Choose player…"
+                                    }, void 0, false, {
+                                        fileName: "[project]/components/SuspendedPanel.js",
+                                        lineNumber: 113,
+                                        columnNumber: 15
+                                    }, this),
+                                    eligiblePlayers.map((p)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                            value: p.id,
+                                            children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$formatName$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["formatPlayerName"])(p.name)
+                                        }, p.id, false, {
+                                            fileName: "[project]/components/SuspendedPanel.js",
+                                            lineNumber: 115,
+                                            columnNumber: 17
+                                        }, this))
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/components/SuspendedPanel.js",
+                                lineNumber: 108,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                onClick: handleConfirmSuspend,
+                                disabled: !selectedPlayerId,
+                                className: "text-xs font-medium rounded-full px-3 py-1.5 bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0",
+                                children: "Confirm"
+                            }, void 0, false, {
+                                fileName: "[project]/components/SuspendedPanel.js",
+                                lineNumber: 120,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                onClick: ()=>{
+                                    setIsAdding(false);
+                                    setSelectedPlayerId("");
+                                },
+                                className: "text-xs font-medium text-gray-500 hover:text-gray-700 px-2 py-1.5 shrink-0",
+                                children: "Cancel"
+                            }, void 0, false, {
+                                fileName: "[project]/components/SuspendedPanel.js",
+                                lineNumber: 127,
+                                columnNumber: 13
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/components/SuspendedPanel.js",
+                        lineNumber: 107,
+                        columnNumber: 11
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/components/SuspendedPanel.js",
+                lineNumber: 103,
+                columnNumber: 9
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                type: "text",
+                value: search,
+                onChange: (e)=>setSearch(e.target.value),
+                placeholder: "Search suspended players…",
+                className: "w-full rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm mb-3"
+            }, void 0, false, {
+                fileName: "[project]/components/SuspendedPanel.js",
+                lineNumber: 140,
+                columnNumber: 7
+            }, this),
+            loading ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                className: "text-sm text-gray-400",
+                children: "Loading…"
+            }, void 0, false, {
+                fileName: "[project]/components/SuspendedPanel.js",
+                lineNumber: 149,
+                columnNumber: 9
+            }, this) : filteredSuspended.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                className: "text-sm text-gray-400",
+                children: search ? "No matches." : "No suspended players."
+            }, void 0, false, {
+                fileName: "[project]/components/SuspendedPanel.js",
+                lineNumber: 151,
+                columnNumber: 9
+            }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
+                className: "max-h-80 overflow-y-auto divide-y divide-[var(--border)]",
+                children: filteredSuspended.map((player)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(SuspendedPlayerRow, {
+                        player: player,
+                        onToggleSuspend: onToggleSuspend
+                    }, player.id, false, {
+                        fileName: "[project]/components/SuspendedPanel.js",
+                        lineNumber: 157,
+                        columnNumber: 13
+                    }, this))
+            }, void 0, false, {
+                fileName: "[project]/components/SuspendedPanel.js",
+                lineNumber: 155,
+                columnNumber: 9
+            }, this)
+        ]
+    }, void 0, true, {
+        fileName: "[project]/components/SuspendedPanel.js",
+        lineNumber: 92,
+        columnNumber: 5
+    }, this);
+}
+}),
 "[project]/components/TeamManager.js [app-ssr] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
@@ -3156,4 +3461,4 @@ function assignPresentPlayer(player, queues, allPlayers, makeId) {
 }),
 ];
 
-//# sourceMappingURL=%5Broot-of-the-server%5D__1mi760z._.js.map
+//# sourceMappingURL=%5Broot-of-the-server%5D__0jrtr29._.js.map

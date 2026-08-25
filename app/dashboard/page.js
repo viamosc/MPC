@@ -11,7 +11,7 @@ import {
   saveDuration,
   subscribeToAppState,
 } from "@/lib/store";
-import { getAllPlayers, setPlayerPresent, setPlayerTeam, subscribeToPlayers} from "@/lib/players";
+import { getAllPlayers, setPlayerPresent, setPlayerTeam, subscribeToPlayers, setPlayerSuspended} from "@/lib/players";
 import {
   createPresenceRequest,
   createTeamCreateRequest,
@@ -34,6 +34,7 @@ import { nextTeamLabel } from "@/components/TeamManager";
 import { refresh } from "next/cache";
 import { supabase } from "@/lib/supabaseClient";
 import EditProfileModal from "@/components/EditProfileModal";
+import SuspendedPanel from "@/components/SuspendedPanel";
 
 let nextQueueId = 1;
 function newQueueId() {
@@ -168,6 +169,32 @@ function playBuzzer() {
     return playersList.filter(
       (p) => p.present && !queuedIds.has(p.id) && !onCourtIds.has(p.id)
     );
+  }
+
+  async function handleToggleSuspendPlayer(player, suspended) {
+    // Optimistically update local state
+    const updatedPlayers = players.map((p) =>
+      p.id === player.id ? { ...p, suspended, present: suspended ? false : p.present } : p
+    );
+    setPlayers(updatedPlayers);
+
+    // If suspended, remove player from queues immediately
+    if (suspended) {
+      const next = queues.map((q) => ({
+        ...q,
+        players: q.players.filter((p) => p.id !== player.id),
+      }));
+      persistQueues(next);
+    }
+
+    try {
+      await setPlayerSuspended(player.id, suspended);
+      if (suspended) {
+        await setPlayerPresent(player.id, false);
+      }
+    } catch (err) {
+      setPlayersError(err.message);
+    }
   }
 
   async function handleTogglePresent(player) {
@@ -788,6 +815,11 @@ return () => {
               onRemovePlayerFromTeam={handleRemovePlayerFromTeam}
               onDeleteTeam={handleDeleteTeam}
               onQueueTeam={handleQueueTeam}
+            />
+            <SuspendedPanel
+              players={players}
+              onToggleSuspend={handleToggleSuspendPlayer}
+              loading={loadingPlayers}
             />
           </aside>
         )}
