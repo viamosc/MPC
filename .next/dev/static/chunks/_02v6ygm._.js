@@ -491,8 +491,6 @@ __turbopack_context__.s([
     ()=>assignPlayerToQueues,
     "assignPresentPlayer",
     ()=>assignPresentPlayer,
-    "buildAutoQueues",
-    ()=>buildAutoQueues,
     "tierIndex",
     ()=>tierIndex
 ]);
@@ -518,81 +516,10 @@ _c2 = TIER_INDEX;
 function tierIndex(skillLevel) {
     return TIER_INDEX[skillLevel] ?? 0;
 }
-function buildAutoQueues(players, skillBased = true) {
-    if (!skillBased) {
-        const groups = [];
-        for(let i = 0; i < players.length; i += 4){
-            groups.push(players.slice(i, i + 4));
-        }
-        return groups;
-    }
-    const buckets = TIERS.map((tier)=>players.filter((p)=>p.skill_level === tier));
-    const groups = [];
-    let leftover = [];
-    let leftoverRange = null;
-    for(let i = 0; i < TIERS.length; i++){
-        let pool = buckets[i].map((p)=>({
-                ...p,
-                tierIdx: i
-            }));
-        if (leftover.length) {
-            const newMin = Math.min(leftoverRange[0], i);
-            const newMax = Math.max(leftoverRange[1], i);
-            if (newMax - newMin <= 1) {
-                pool = [
-                    ...leftover,
-                    ...pool
-                ];
-            } else {
-                groups.push(leftover);
-            }
-        }
-        while(pool.length >= 4){
-            groups.push(pool.splice(0, 4));
-        }
-        leftover = pool;
-        leftoverRange = leftover.length ? [
-            Math.min(...leftover.map((p)=>p.tierIdx)),
-            Math.max(...leftover.map((p)=>p.tierIdx))
-        ] : null;
-    }
-    if (leftover.length) groups.push(leftover);
-    return groups.map((g)=>g.map(({ tierIdx, ...p })=>p));
-}
-function assignPlayerToQueues(player, queues, makeId, skillBased = true) {
-    const tIdx = tierIndex(player.skill_level);
+function assignPlayerToQueues(player, queues, makeId) {
     for(let i = 0; i < queues.length; i++){
         const q = queues[i];
-        if (q.players.length >= 4) continue;
-        if (q.players.length === 0) {
-            const next = [
-                ...queues
-            ];
-            next[i] = {
-                ...q,
-                players: [
-                    player
-                ]
-            };
-            return next;
-        }
-        if (!skillBased) {
-            const next = [
-                ...queues
-            ];
-            next[i] = {
-                ...q,
-                players: [
-                    ...q.players,
-                    player
-                ]
-            };
-            return next;
-        }
-        const tiers = q.players.map((p)=>tierIndex(p.skill_level));
-        const newMin = Math.min(...tiers, tIdx);
-        const newMax = Math.max(...tiers, tIdx);
-        if (newMax - newMin <= 1) {
+        if (q.players.length < 4) {
             const next = [
                 ...queues
             ];
@@ -616,7 +543,7 @@ function assignPlayerToQueues(player, queues, makeId, skillBased = true) {
         }
     ];
 }
-function assignPresentPlayer(player, queues, allPlayers, makeId, skillBased = true) {
+function assignPresentPlayer(player, queues, allPlayers, makeId) {
     if (player.team_id) {
         const teammates = allPlayers.filter((p)=>p.team_id === player.team_id && p.present);
         if (teammates.length > 1) {
@@ -634,7 +561,7 @@ function assignPresentPlayer(player, queues, allPlayers, makeId, skillBased = tr
             ];
         }
     }
-    return assignPlayerToQueues(player, queues, makeId, skillBased);
+    return assignPlayerToQueues(player, queues, makeId);
 }
 var _c, _c1, _c2;
 __turbopack_context__.k.register(_c, "TIER_INDEX$Object.fromEntries$TIERS.map");

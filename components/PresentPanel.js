@@ -50,11 +50,11 @@ function PlayerRow({ p, status, onTogglePresent, onQueuePlayer }) {
           onClick={() => onTogglePresent(p)}
           className={`text-xs font-medium rounded-full px-3 py-1 transition-colors ${
             p.present
-              ? "bg-green-600 text-white hover:bg-green-700"
-              : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              ? "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              : "bg-green-600 text-white hover:bg-green-70"
           }`}
         >
-          {p.present ? "Present" : "Absent"}
+          {p.present ? "Mark as Absent" : "Mark as Present"}
         </button>
         {p.present && !status && (
           <button

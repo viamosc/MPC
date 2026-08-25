@@ -54,7 +54,6 @@ export default function DashboardPage() {
   const [playersError, setPlayersError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [autoPlayIn, setAutoPlayIn] = useState(null);
-  const [skillBased, setSkillBased] = useState(true);
   const [autoDuration, setAutoDuration] = useState(true);
   const [editingProfile, setEditingProfile] = useState(false);
   const courtsEmpty = courts.every((c) => !c.running && (c.players || []).length === 0);
@@ -174,7 +173,7 @@ useEffect(() => {
   }
 
   function handleQueuePlayer(player) {
-    const next = assignPresentPlayer(player, queues, players, newQueueId, skillBased);
+    const next = assignPresentPlayer(player, queues, players, newQueueId);
     persistQueues(next);
   }
 
@@ -273,14 +272,14 @@ useEffect(() => {
       setPlayerPresent(player.id, true).catch((err) => setPlayersError(err.message));
     }
 
-if (
-  !isPlayerQueuedOrPlaying(player.id) &&
-  request.type !== "team_create" &&
-  request.type !== "team_join"
-) {
-  const next = assignPresentPlayer(updatedPlayer, queues, updatedPlayers, newQueueId, skillBased);
-  persistQueues(next);
-}
+    if (
+      !isPlayerQueuedOrPlaying(player.id) &&
+      request.type !== "team_create" &&
+      request.type !== "team_join"
+    ) {
+      const next = assignPresentPlayer(updatedPlayer, queues, updatedPlayers, newQueueId);
+      persistQueues(next);
+    }
   }
 
   function handleDenyRequest(requestId) {
@@ -385,7 +384,7 @@ if (
       for (const freed of court.players) {
         const fullPlayer = players.find((p) => p.id === freed.id);
         if (fullPlayer && fullPlayer.present) {
-          next = assignPresentPlayer(fullPlayer, next, players, newQueueId, skillBased);
+          next = assignPresentPlayer(fullPlayer, next, players, newQueueId);
         }
       }
     }
@@ -484,7 +483,7 @@ return () => {
       if (expired) handleMatchFinished();
     }, 1000);
     return () => clearInterval(interval);
-  }, [isAdmin, courts, queues, players, skillBased]);
+  }, [isAdmin, courts, queues, players]);
 
   // Auto "Play": once queues 1-3 are full (canPlay), wait 1 minute then
   // trigger the same logic the button does, unless it stops being ready
@@ -651,33 +650,7 @@ return () => {
                   </button>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <label className="text-sm text-gray-500">Queueing</label>
-                  <div className="flex items-center rounded-lg border border-[var(--border)] overflow-hidden">
-                    <button
-                      onClick={() => setSkillBased(true)}
-                      title="Group players so tiers are at most 1 apart"
-                      className={`px-3 py-1 text-sm ${
-                        skillBased
-                          ? "bg-[var(--blue)] text-white"
-                          : "bg-white text-gray-600"
-                      }`}
-                    >
-                      Skill-based
-                    </button>
-                    <button
-                      onClick={() => setSkillBased(false)}
-                      title="Fill queues in the order players become available"
-                      className={`px-3 py-1 text-sm border-l border-[var(--border)] ${
-                        !skillBased
-                          ? "bg-[var(--blue)] text-white"
-                          : "bg-white text-gray-600"
-                      }`}
-                    >
-                      Open Play
-                    </button>
-                  </div>
-                </div>
+
 
                 <div className="flex items-center gap-2">
                   <button
