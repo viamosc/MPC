@@ -34,6 +34,8 @@ __turbopack_context__.s([
     ()=>getSession,
     "logout",
     ()=>logout,
+    "saveAnnouncement",
+    ()=>saveAnnouncement,
     "saveCourts",
     ()=>saveCourts,
     "saveDuration",
@@ -101,7 +103,7 @@ const DEFAULT_COURTS = [
 ;
 const STATE_ROW_ID = 1;
 async function getAppState() {
-    const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from("app_state").select("courts, queues, duration").eq("id", STATE_ROW_ID).single();
+    const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from("app_state").select("courts, queues, duration, announcement").eq("id", STATE_ROW_ID).single();
     if (error) throw new Error(error.message);
     return data;
 }
@@ -134,6 +136,14 @@ function subscribeToAppState(onChange) {
         filter: `id=eq.${STATE_ROW_ID}`
     }, (payload)=>onChange(payload.new)).subscribe();
     return ()=>__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].removeChannel(channel);
+}
+async function saveAnnouncement(announcement) {
+    // app_state table has a single row with id = 1:
+    const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from("app_state").update({
+        announcement
+    }).eq("id", 1);
+    if (error) throw error;
+    return data;
 }
 }),
 "[project]/lib/supabaseClient.js [app-ssr] (ecmascript)", ((__turbopack_context__) => {

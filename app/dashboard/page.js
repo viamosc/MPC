@@ -10,6 +10,7 @@ import {
   saveQueues,
   saveDuration,
   subscribeToAppState,
+  saveAnnouncement,
 } from "@/lib/store";
 import { getAllPlayers, setPlayerPresent, setPlayerTeam, subscribeToPlayers, setPlayerSuspended} from "@/lib/players";
 import {
@@ -35,6 +36,7 @@ import { refresh } from "next/cache";
 import { supabase } from "@/lib/supabaseClient";
 import EditProfileModal from "@/components/EditProfileModal";
 import SuspendedPanel from "@/components/SuspendedPanel";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
 
 let nextQueueId = 1;
 function newQueueId() {
@@ -58,6 +60,7 @@ export default function DashboardPage() {
   const [autoDuration, setAutoDuration] = useState(true);
   const [editingProfile, setEditingProfile] = useState(false);
   const activeCourts = courts.filter((c) => c.active !== false);
+  const [announcement, setAnnouncement] = useState("");
   const courtsEmpty = courts.every((c) => !c.running && (c.players || []).length === 0);
   const canPlay =
     courtsEmpty &&
@@ -94,6 +97,7 @@ useEffect(() => {
       setCourts(state.courts || []);
       setQueues(state.queues || []);
       setDuration(state.duration ?? 20);
+      setAnnouncement(state.announcement || "");
     } catch (err) {
       setPlayersError(err.message);
     }
@@ -104,6 +108,7 @@ useEffect(() => {
     if (newState.courts) setCourts(newState.courts);
     if (newState.queues) setQueues(newState.queues);
     if (newState.duration != null) setDuration(newState.duration);
+    if (newState.announcement !== undefined) setAnnouncement(newState.announcement);
   });
 
   return () => {
@@ -196,6 +201,15 @@ function playBuzzer() {
       setPlayersError(err.message);
     }
   }
+
+  async function handleSaveAnnouncement(newAnnouncement) {
+  setAnnouncement(newAnnouncement);
+  try {
+    await saveAnnouncement(newAnnouncement);
+  } catch (err) {
+    setPlayersError(err.message);
+  }
+}
 
   async function handleTogglePresent(player) {
     const nextPresent = !player.present;
@@ -662,6 +676,13 @@ return () => {
         }`}
       >
         <div className="space-y-8">
+          {/* Announcement banner visible to players and editable by admin */}
+          <AnnouncementBanner
+            announcement={announcement}
+            isAdmin={isAdmin}
+            onSaveAnnouncement={handleSaveAnnouncement}
+          />
+                  
           <section>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
