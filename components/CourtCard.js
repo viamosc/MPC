@@ -11,9 +11,18 @@ function formatTime(ms) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-export default function CourtCard({ court, isAdmin, onToggleActive }) {
+export default function CourtCard({
+  court,
+  isAdmin,
+  timeMode = "shared",
+  canPlayCourt = false,
+  onPlay,
+  onFinish,
+  onToggleActive,
+}) {
   const [now, setNow] = useState(Date.now());
   const isOff = court.active === false;
+  const isRunning = Boolean(court.running && (court.players || []).length > 0);
 
   useEffect(() => {
     if (!court.running || isOff) return;
@@ -22,71 +31,103 @@ export default function CourtCard({ court, isAdmin, onToggleActive }) {
   }, [court.running, isOff]);
 
   const remaining = court.endsAt ? court.endsAt - now : 0;
-  const timeUp = court.running && remaining <= 0;
+  const timeUp = isRunning && remaining <= 0;
+  const hasPlayers = (court.players || []).length > 0;
 
   return (
     <div
-      className={`rounded-xl p-5 border transition-all ${
+      className={`rounded-xl p-5 border transition-all flex flex-col justify-between ${
         isOff
           ? "bg-gray-100/70 border-gray-200 opacity-60"
           : "bg-green-50 border-green-200"
       }`}
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <h3 className={`font-medium ${isOff ? "text-gray-400" : "text-gray-800"}`}>
-            {court.name}
-          </h3>
-          {isOff && (
-            <span className="text-[10px] font-semibold uppercase tracking-wider bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded">
-              Off
-            </span>
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <h3
+              className={`font-medium ${
+                isOff ? "text-gray-400" : "text-gray-800"
+              }`}
+            >
+              {court.name}
+            </h3>
+            {isOff && (
+              <span className="text-[10px] font-semibold uppercase tracking-wider bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded">
+                Off
+              </span>
+            )}
+          </div>
+
+          {isAdmin && onToggleActive && (
+            <button
+              type="button"
+              onClick={() => onToggleActive(court.id)}
+              className={`text-xs px-2 py-0.5 rounded font-medium border transition-colors ${
+                isOff
+                  ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  : "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+              }`}
+            >
+              {isOff ? "Turn On" : "Turn Off"}
+            </button>
           )}
         </div>
 
-        {isAdmin && onToggleActive && (
-          <button
-            onClick={() => onToggleActive(court.id)}
-            className={`text-xs px-2 py-0.5 rounded font-medium border transition-colors ${
-              isOff
-                ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                : "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
-            }`}
-          >
-            {isOff ? "Turn On" : "Turn Off"}
-          </button>
+        {isOff ? (
+          <p className="text-sm text-gray-400 italic mb-3">Court is disabled</p>
+        ) : (
+          <>
+            {isRunning && (
+              <div
+                className={`text-sm font-medium mb-3 ${
+                  timeUp ? "text-red-600" : "text-[var(--blue)]"
+                }`}
+              >
+                {timeUp ? "Time's up" : formatTime(remaining)}
+              </div>
+            )}
+
+            {!hasPlayers ? (
+              <p className="text-sm text-gray-400 mb-3">Waiting for players.</p>
+            ) : (
+              <ul className="space-y-1.5 mb-3">
+                {court.players.map((player, i) => (
+                  <li
+                    key={player?.id ?? i}
+                    className="text-sm rounded-lg border border-[var(--border)] bg-white px-3 py-1.5"
+                  >
+                    {formatPlayerName(player?.name ?? player)}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
         )}
       </div>
 
-      {isOff ? (
-        <p className="text-sm text-gray-400 italic mb-3">Court is disabled</p>
-      ) : (
-        <>
-          {court.running && (
-            <div
-              className={`text-sm font-medium mb-3 ${
-                timeUp ? "text-red-600" : "text-[var(--blue)]"
-              }`}
+      {/* Per-Court Action Buttons */}
+      {isAdmin && !isOff && timeMode === "perCourt" && (
+        <div className="pt-3 border-t border-[var(--border)] mt-3">
+          {!isRunning ? (
+            <button
+              type="button"
+              onClick={onPlay}
+              disabled={!canPlayCourt}
+              className="w-full text-xs font-semibold py-2 px-3 rounded-lg bg-[var(--blue)] text-white hover:bg-[var(--blue-dark)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
-              {timeUp ? "Time's up" : formatTime(remaining)}
-            </div>
-          )}
-
-          {(court.players || []).length === 0 ? (
-            <p className="text-sm text-gray-400 mb-3">Waiting for players.</p>
+              ▶ Play
+            </button>
           ) : (
-            <ul className="space-y-1.5 mb-3">
-              {court.players.map((player, i) => (
-                <li
-                  key={player?.id ?? i}
-                  className="text-sm rounded-lg border border-[var(--border)] bg-white px-3 py-1.5"
-                >
-                  {formatPlayerName(player?.name ?? player)}
-                </li>
-              ))}
-            </ul>
+            <button
+              type="button"
+              onClick={onFinish}
+              className="w-full text-xs font-semibold py-2 px-3 rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-colors cursor-pointer"
+            >
+              Match Finished
+            </button>
           )}
-        </>
+        </div>
       )}
     </div>
   );

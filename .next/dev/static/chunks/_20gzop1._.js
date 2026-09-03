@@ -66,11 +66,21 @@ function DashboardPage() {
     const [sidebarOpen, setSidebarOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(true);
     const [autoPlayIn, setAutoPlayIn] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     const [autoDuration, setAutoDuration] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(true);
+    const [timeMode, setTimeMode] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("shared");
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "DashboardPage.useEffect": ()=>{
+            const savedMode = window.localStorage.getItem("timeMode");
+            if (savedMode === "shared" || savedMode === "perCourt") {
+                setTimeMode(savedMode);
+            }
+        }
+    }["DashboardPage.useEffect"], []);
     const [editingProfile, setEditingProfile] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const activeCourts = courts.filter((c)=>c.active !== false);
     const [announcement, setAnnouncement] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
     const courtsEmpty = courts.every((c)=>!c.running && (c.players || []).length === 0);
-    const canPlay = courtsEmpty && queues.length >= activeCourts.length && queues[0]?.players.length === 4 && queues[1]?.players.length === 4 && queues[2]?.players.length === 4;
+    const fullQueueCount = queues.filter((q)=>q.players.length === 4).length;
+    const canPlay = courtsEmpty && activeCourts.length > 0 && fullQueueCount >= activeCourts.length;
     const refreshPlayers = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
         "DashboardPage.useCallback[refreshPlayers]": async ()=>{
             setLoadingPlayers(true);
@@ -158,6 +168,10 @@ function DashboardPage() {
             }, 10000); // 10,000 ms = 10 seconds
         }).catch(()=>{});
     }
+    function handleTimeModeChange(mode) {
+        setTimeMode(mode);
+        window.localStorage.setItem("timeMode", mode);
+    }
     function persistQueues(next) {
         setQueues(next);
         (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["saveQueues"])(next).catch((err)=>setPlayersError(err.message));
@@ -177,6 +191,47 @@ function DashboardPage() {
         const queuedIds = new Set(queuesList.flatMap((q)=>(q.players || []).filter(Boolean).map((p)=>p.id)));
         const onCourtIds = new Set(courtsList.flatMap((c)=>(c.players || []).filter(Boolean).map((p)=>p.id)));
         return playersList.filter((p)=>p.present && !queuedIds.has(p.id) && !onCourtIds.has(p.id));
+    }
+    // Start a single court using the first full queue available
+    function handlePlayCourt(courtId) {
+        const targetCourt = courts.find((c)=>c.id === courtId);
+        if (!targetCourt || targetCourt.active === false || targetCourt.running) return;
+        const firstFullQueue = queues.find((q)=>q.players.length === 4);
+        if (!firstFullQueue) return;
+        const courtDuration = timeMode === "perCourt" ? targetCourt.duration ?? duration : duration;
+        const nextCourts = courts.map((c)=>c.id === courtId ? {
+                ...c,
+                players: firstFullQueue.players.map((p)=>({
+                        id: p.id,
+                        name: p.name
+                    })),
+                queueLabel: "Active Queue",
+                endsAt: Date.now() + courtDuration * 60 * 1000,
+                running: true
+            } : c);
+        persistCourts(nextCourts);
+        persistQueues(queues.filter((q)=>q.id !== firstFullQueue.id));
+    }
+    // Finish a single court and re-queue its players
+    function handleMatchFinishedCourt(courtId) {
+        const court = courts.find((c)=>c.id === courtId);
+        if (!court || (court.players || []).length === 0) return;
+        const nextCourts = courts.map((c)=>c.id === courtId ? {
+                ...c,
+                players: [],
+                queueLabel: null,
+                endsAt: null,
+                running: false
+            } : c);
+        persistCourts(nextCourts);
+        let next = queues;
+        for (const freed of court.players){
+            const fullPlayer = players.find((p)=>p.id === freed.id);
+            if (fullPlayer && fullPlayer.present) {
+                next = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$tiers$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["assignPresentPlayer"])(fullPlayer, next, players, newQueueId);
+            }
+        }
+        persistQueues(next);
     }
     async function handleToggleSuspendPlayer(player, suspended) {
         // Optimistically update local state
@@ -418,29 +473,30 @@ function DashboardPage() {
     }
     function handlePlay() {
         const activeList = courts.filter((c)=>c.active !== false);
-        if (activeList.length === 0 || queues.length < activeList.length) return;
-        const queuesToPlay = queues.slice(0, activeList.length);
-        const isEveryQueueFull = queuesToPlay.every((q)=>q.players.length === 4);
-        if (!isEveryQueueFull) return;
-        const endsAt = Date.now() + duration * 60 * 1000;
-        let activeIndex = 0;
+        if (activeList.length === 0) return;
+        const fullQueues = queues.filter((q)=>q.players.length === 4);
+        if (fullQueues.length < activeList.length) return;
+        const queuesToPlay = fullQueues.slice(0, activeList.length);
+        const playIds = new Set(queuesToPlay.map((q)=>q.id));
+        let queueIndex = 0;
         const nextCourts = courts.map((court)=>{
             if (court.active === false) return court;
-            const q = queuesToPlay[activeIndex];
-            activeIndex++;
+            const q = queuesToPlay[queueIndex];
+            queueIndex++;
+            const courtDuration = timeMode === "perCourt" ? court.duration ?? duration : duration;
             return {
                 ...court,
                 players: q.players.map((p)=>({
                         id: p.id,
                         name: p.name
                     })),
-                queueLabel: `Queue ${activeIndex}`,
-                endsAt,
+                queueLabel: `Queue ${queueIndex}`,
+                endsAt: Date.now() + courtDuration * 60 * 1000,
                 running: true
             };
         });
         persistCourts(nextCourts);
-        persistQueues(queues.slice(activeList.length));
+        persistQueues(queues.filter((q)=>!playIds.has(q.id)));
     }
     function handleMatchFinished() {
         const playingCourts = courts.filter((c)=>c.players.length > 0);
@@ -468,6 +524,13 @@ function DashboardPage() {
         if (manual) setAutoDuration(false);
         setDuration(minutes);
         (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["saveDuration"])(minutes).catch((err)=>setPlayersError(err.message));
+    }
+    function handleCourtDurationChange(courtId, minutes) {
+        const nextCourts = courts.map((c)=>c.id === courtId ? {
+                ...c,
+                duration: minutes
+            } : c);
+        persistCourts(nextCourts);
     }
     // Counts full (4-player) courts and full (4-player) queues — i.e. complete
     // teams currently playing or waiting to play. Partially-filled queues
@@ -561,19 +624,24 @@ function DashboardPage() {
         courts,
         queues
     ]);
-    // Auto "Match finished": once a running court's timer (endsAt) has
-    // passed, trigger the same logic the button does. Button stays visible.
+    // Auto "Match finished": check per court
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "DashboardPage.useEffect": ()=>{
             if (!isAdmin) return;
             const interval = setInterval({
                 "DashboardPage.useEffect.interval": ()=>{
-                    const expired = courts.some({
-                        "DashboardPage.useEffect.interval.expired": (c)=>c.running && c.endsAt && Date.now() >= c.endsAt
-                    }["DashboardPage.useEffect.interval.expired"]);
-                    if (expired) {
+                    const expiredCourts = courts.filter({
+                        "DashboardPage.useEffect.interval.expiredCourts": (c)=>c.running && c.endsAt && Date.now() >= c.endsAt
+                    }["DashboardPage.useEffect.interval.expiredCourts"]);
+                    if (expiredCourts.length > 0) {
                         playBuzzer();
-                        handleMatchFinished();
+                        if (timeMode === "perCourt") {
+                            expiredCourts.forEach({
+                                "DashboardPage.useEffect.interval": (c)=>handleMatchFinishedCourt(c.id)
+                            }["DashboardPage.useEffect.interval"]);
+                        } else {
+                            handleMatchFinished();
+                        }
                     }
                 }
             }["DashboardPage.useEffect.interval"], 1000);
@@ -585,7 +653,8 @@ function DashboardPage() {
         isAdmin,
         courts,
         queues,
-        players
+        players,
+        timeMode
     ]);
     // Auto "Play": once queues 1-3 are full (canPlay), wait 1 minute then
     // trigger the same logic the button does, unless it stops being ready
@@ -654,7 +723,7 @@ function DashboardPage() {
                                     className: "w-3 h-3 rounded-full bg-[var(--yellow)]"
                                 }, void 0, false, {
                                     fileName: "[project]/app/dashboard/page.js",
-                                    lineNumber: 645,
+                                    lineNumber: 719,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -662,13 +731,13 @@ function DashboardPage() {
                                     children: "Miagao Pickleball Club"
                                 }, void 0, false, {
                                     fileName: "[project]/app/dashboard/page.js",
-                                    lineNumber: 646,
+                                    lineNumber: 720,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/dashboard/page.js",
-                            lineNumber: 644,
+                            lineNumber: 718,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -680,7 +749,7 @@ function DashboardPage() {
                                     children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$formatName$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["formatPlayerName"])(session?.name)
                                 }, void 0, false, {
                                     fileName: "[project]/app/dashboard/page.js",
-                                    lineNumber: 649,
+                                    lineNumber: 723,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -689,24 +758,24 @@ function DashboardPage() {
                                     children: "Log out"
                                 }, void 0, false, {
                                     fileName: "[project]/app/dashboard/page.js",
-                                    lineNumber: 655,
+                                    lineNumber: 729,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/dashboard/page.js",
-                            lineNumber: 648,
+                            lineNumber: 722,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/dashboard/page.js",
-                    lineNumber: 643,
+                    lineNumber: 717,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/app/dashboard/page.js",
-                lineNumber: 642,
+                lineNumber: 716,
                 columnNumber: 7
             }, this),
             myStatus === "playing" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -717,7 +786,7 @@ function DashboardPage() {
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/dashboard/page.js",
-                lineNumber: 663,
+                lineNumber: 737,
                 columnNumber: 9
             }, this),
             myStatus === "next" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -728,7 +797,7 @@ function DashboardPage() {
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/dashboard/page.js",
-                lineNumber: 668,
+                lineNumber: 742,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -743,7 +812,7 @@ function DashboardPage() {
                                 onSaveAnnouncement: handleSaveAnnouncement
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 680,
+                                lineNumber: 754,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -756,21 +825,21 @@ function DashboardPage() {
                                                 children: "Courts"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/page.js",
-                                                lineNumber: 688,
-                                                columnNumber: 15
+                                                lineNumber: 762,
+                                                columnNumber: 5
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "flex items-center gap-3",
                                                 children: [
-                                                    isAdmin && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                    isAdmin && timeMode === "shared" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                         onClick: handleMatchFinished,
                                                         disabled: !courts.some((c)=>c.players.length > 0),
                                                         className: "text-sm text-[var(--blue)] font-medium disabled:opacity-40 disabled:cursor-not-allowed",
                                                         children: "Match finished"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/page.js",
-                                                        lineNumber: 693,
-                                                        columnNumber: 19
+                                                        lineNumber: 768,
+                                                        columnNumber: 9
                                                     }, this),
                                                     isAdmin && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                         onClick: ()=>setSidebarOpen((o)=>!o),
@@ -779,41 +848,95 @@ function DashboardPage() {
                                                         children: sidebarOpen ? "› Hide panel" : "‹ Show panel"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/page.js",
-                                                        lineNumber: 702,
-                                                        columnNumber: 19
+                                                        lineNumber: 777,
+                                                        columnNumber: 9
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/dashboard/page.js",
-                                                lineNumber: 691,
-                                                columnNumber: 15
+                                                lineNumber: 765,
+                                                columnNumber: 5
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/page.js",
-                                        lineNumber: 687,
-                                        columnNumber: 13
+                                        lineNumber: 761,
+                                        columnNumber: 3
                                     }, this),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "grid grid-cols-1 sm:grid-cols-3 gap-4",
-                                        children: courts.map((court)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$CourtCard$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
-                                                court: court,
-                                                isAdmin: isAdmin,
-                                                onToggleActive: handleToggleCourtActive
-                                            }, court.id, false, {
+                                    isAdmin && timeMode === "perCourt" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2",
+                                        children: courts.map((court)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                className: "flex items-center gap-2 text-sm",
+                                                children: [
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                        className: "text-gray-500",
+                                                        children: [
+                                                            court.name || court.id,
+                                                            ":"
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "[project]/app/dashboard/page.js",
+                                                        lineNumber: 792,
+                                                        columnNumber: 11
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                        type: "number",
+                                                        min: "1",
+                                                        value: court.duration ?? duration,
+                                                        onChange: (e)=>handleCourtDurationChange(court.id, Number(e.target.value) || 1),
+                                                        className: "w-16 px-2 py-1 border border-[var(--border)] rounded text-center"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/app/dashboard/page.js",
+                                                        lineNumber: 793,
+                                                        columnNumber: 11
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                        className: "text-gray-400",
+                                                        children: "m"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/app/dashboard/page.js",
+                                                        lineNumber: 802,
+                                                        columnNumber: 11
+                                                    }, this)
+                                                ]
+                                            }, court.id, true, {
                                                 fileName: "[project]/app/dashboard/page.js",
-                                                lineNumber: 714,
-                                                columnNumber: 17
+                                                lineNumber: 791,
+                                                columnNumber: 9
                                             }, this))
                                     }, void 0, false, {
                                         fileName: "[project]/app/dashboard/page.js",
-                                        lineNumber: 712,
-                                        columnNumber: 13
+                                        lineNumber: 789,
+                                        columnNumber: 5
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "grid grid-cols-1 sm:grid-cols-3 gap-4",
+                                        children: courts.map((court)=>{
+                                            const isCourtAvailable = court.active !== false && !court.running && (court.players || []).length === 0;
+                                            const hasFullQueue = queues.some((q)=>(q.players || []).length === 4);
+                                            return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$CourtCard$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
+                                                court: court,
+                                                isAdmin: isAdmin,
+                                                timeMode: timeMode,
+                                                canPlayCourt: isCourtAvailable && hasFullQueue,
+                                                onPlay: ()=>handlePlayCourt(court.id),
+                                                onFinish: ()=>handleMatchFinishedCourt(court.id),
+                                                onToggleActive: handleToggleCourtActive
+                                            }, court.id, false, {
+                                                fileName: "[project]/app/dashboard/page.js",
+                                                lineNumber: 817,
+                                                columnNumber: 9
+                                            }, this);
+                                        })
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/dashboard/page.js",
+                                        lineNumber: 808,
+                                        columnNumber: 3
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 686,
+                                lineNumber: 760,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -821,7 +944,7 @@ function DashboardPage() {
                                     isAdmin && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "flex flex-wrap items-center justify-between gap-3 mb-3",
                                         children: [
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            timeMode === "shared" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "flex items-center gap-2",
                                                 children: [
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -829,8 +952,8 @@ function DashboardPage() {
                                                         children: "Match length"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/page.js",
-                                                        lineNumber: 728,
-                                                        columnNumber: 17
+                                                        lineNumber: 837,
+                                                        columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         className: `flex items-center rounded-lg border border-[var(--border)] overflow-hidden transition-opacity ${autoDuration ? "opacity-50 pointer-events-none bg-gray-50" : "opacity-100"}`,
@@ -848,8 +971,8 @@ function DashboardPage() {
                                                                     ]
                                                                 }, mins, true, {
                                                                     fileName: "[project]/app/dashboard/page.js",
-                                                                    lineNumber: 735,
-                                                                    columnNumber: 21
+                                                                    lineNumber: 848,
+                                                                    columnNumber: 25
                                                                 }, this)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
                                                                 type: "number",
@@ -859,14 +982,14 @@ function DashboardPage() {
                                                                 className: "w-16 px-2 py-1 text-sm border-l border-[var(--border)] bg-transparent text-center focus:outline-none"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/page.js",
-                                                                lineNumber: 748,
-                                                                columnNumber: 19
+                                                                lineNumber: 861,
+                                                                columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/dashboard/page.js",
-                                                        lineNumber: 731,
-                                                        columnNumber: 17
+                                                        lineNumber: 840,
+                                                        columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         className: "flex items-center rounded-lg border border-[var(--border)] overflow-hidden",
@@ -879,8 +1002,8 @@ function DashboardPage() {
                                                                 children: "Auto"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/page.js",
-                                                                lineNumber: 759,
-                                                                columnNumber: 19
+                                                                lineNumber: 874,
+                                                                columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                                 type: "button",
@@ -889,22 +1012,51 @@ function DashboardPage() {
                                                                 children: "Manual"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/page.js",
-                                                                lineNumber: 771,
-                                                                columnNumber: 19
+                                                                lineNumber: 886,
+                                                                columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/dashboard/page.js",
-                                                        lineNumber: 758,
-                                                        columnNumber: 17
+                                                        lineNumber: 873,
+                                                        columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/dashboard/page.js",
-                                                lineNumber: 727,
-                                                columnNumber: 15
+                                                lineNumber: 836,
+                                                columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                className: "flex items-center rounded-lg border border-[var(--border)] overflow-hidden",
+                                                children: [
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                        type: "button",
+                                                        onClick: ()=>handleTimeModeChange("shared"),
+                                                        className: `px-3 py-1 text-sm font-medium transition-colors ${timeMode === "shared" ? "bg-[var(--blue)] text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`,
+                                                        children: "Shared"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/app/dashboard/page.js",
+                                                        lineNumber: 903,
+                                                        columnNumber: 19
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                        type: "button",
+                                                        onClick: ()=>handleTimeModeChange("perCourt"),
+                                                        className: `px-3 py-1 text-sm font-medium border-l border-[var(--border)] transition-colors ${timeMode === "perCourt" ? "bg-[var(--blue)] text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`,
+                                                        children: "Per court"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/app/dashboard/page.js",
+                                                        lineNumber: 914,
+                                                        columnNumber: 19
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/app/dashboard/page.js",
+                                                lineNumber: 902,
+                                                columnNumber: 17
+                                            }, this),
+                                            timeMode === "shared" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "flex items-center gap-2",
                                                 children: [
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -914,8 +1066,8 @@ function DashboardPage() {
                                                         children: "▶ Play"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/page.js",
-                                                        lineNumber: 788,
-                                                        columnNumber: 19
+                                                        lineNumber: 930,
+                                                        columnNumber: 21
                                                     }, this),
                                                     autoPlayIn != null && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                         className: "text-xs text-gray-400",
@@ -926,19 +1078,19 @@ function DashboardPage() {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/dashboard/page.js",
-                                                        lineNumber: 796,
-                                                        columnNumber: 21
+                                                        lineNumber: 938,
+                                                        columnNumber: 23
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/dashboard/page.js",
-                                                lineNumber: 787,
-                                                columnNumber: 17
+                                                lineNumber: 929,
+                                                columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/page.js",
-                                        lineNumber: 726,
+                                        lineNumber: 833,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$QueueBoard$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -951,19 +1103,19 @@ function DashboardPage() {
                                         readOnly: !isAdmin
                                     }, void 0, false, {
                                         fileName: "[project]/app/dashboard/page.js",
-                                        lineNumber: 804,
+                                        lineNumber: 947,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 724,
-                                columnNumber: 11
+                                lineNumber: 831,
+                                columnNumber: 1
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/dashboard/page.js",
-                        lineNumber: 678,
+                        lineNumber: 752,
                         columnNumber: 9
                     }, this),
                     isAdmin && sidebarOpen && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("aside", {
@@ -974,7 +1126,7 @@ function DashboardPage() {
                                 children: playersError
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 819,
+                                lineNumber: 962,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$RequestsPanel$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -983,7 +1135,7 @@ function DashboardPage() {
                                 onDeny: handleDenyRequest
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 822,
+                                lineNumber: 965,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$PresentPanel$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -999,7 +1151,7 @@ function DashboardPage() {
                                 onQueueTeam: handleQueueTeam
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 828,
+                                lineNumber: 971,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$SuspendedPanel$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -1008,13 +1160,13 @@ function DashboardPage() {
                                 loading: loadingPlayers
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 840,
+                                lineNumber: 983,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/dashboard/page.js",
-                        lineNumber: 817,
+                        lineNumber: 960,
                         columnNumber: 11
                     }, this),
                     !isAdmin && currentPlayer && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("aside", {
@@ -1024,7 +1176,7 @@ function DashboardPage() {
                                 children: playersError
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 851,
+                                lineNumber: 994,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$PlayerPanel$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -1039,13 +1191,13 @@ function DashboardPage() {
                                 onLeaveTeam: handleLeaveTeamSelf
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/page.js",
-                                lineNumber: 854,
+                                lineNumber: 997,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/dashboard/page.js",
-                        lineNumber: 849,
+                        lineNumber: 992,
                         columnNumber: 11
                     }, this),
                     editingProfile && currentPlayer && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$EditProfileModal$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -1060,23 +1212,23 @@ function DashboardPage() {
                         }
                     }, void 0, false, {
                         fileName: "[project]/app/dashboard/page.js",
-                        lineNumber: 869,
+                        lineNumber: 1012,
                         columnNumber: 3
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/dashboard/page.js",
-                lineNumber: 673,
+                lineNumber: 747,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/dashboard/page.js",
-        lineNumber: 641,
+        lineNumber: 715,
         columnNumber: 5
     }, this);
 }
-_s(DashboardPage, "6hGn14alYfH/T3jC8LSWoephSvE=", false, function() {
+_s(DashboardPage, "qN0b3bYmXIj1cLtIL8CUmv43AR8=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"]
     ];
@@ -1292,10 +1444,11 @@ function formatTime(ms) {
     const s = totalSeconds % 60;
     return `${m}:${String(s).padStart(2, "0")}`;
 }
-function CourtCard({ court, isAdmin, onToggleActive }) {
+function CourtCard({ court, isAdmin, timeMode = "shared", canPlayCourt = false, onPlay, onFinish, onToggleActive }) {
     _s();
     const [now, setNow] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(Date.now());
     const isOff = court.active === false;
+    const isRunning = Boolean(court.running && (court.players || []).length > 0);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "CourtCard.useEffect": ()=>{
             if (!court.running || isOff) return;
@@ -1311,102 +1464,139 @@ function CourtCard({ court, isAdmin, onToggleActive }) {
         isOff
     ]);
     const remaining = court.endsAt ? court.endsAt - now : 0;
-    const timeUp = court.running && remaining <= 0;
+    const timeUp = isRunning && remaining <= 0;
+    const hasPlayers = (court.players || []).length > 0;
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-        className: `rounded-xl p-5 border transition-all ${isOff ? "bg-gray-100/70 border-gray-200 opacity-60" : "bg-green-50 border-green-200"}`,
+        className: `rounded-xl p-5 border transition-all flex flex-col justify-between ${isOff ? "bg-gray-100/70 border-gray-200 opacity-60" : "bg-green-50 border-green-200"}`,
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "flex items-center justify-between mb-3",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "flex items-center gap-2",
+                        className: "flex items-center justify-between mb-3",
                         children: [
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                className: `font-medium ${isOff ? "text-gray-400" : "text-gray-800"}`,
-                                children: court.name
-                            }, void 0, false, {
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "flex items-center gap-2",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                                        className: `font-medium ${isOff ? "text-gray-400" : "text-gray-800"}`,
+                                        children: court.name
+                                    }, void 0, false, {
+                                        fileName: "[project]/components/CourtCard.js",
+                                        lineNumber: 48,
+                                        columnNumber: 13
+                                    }, this),
+                                    isOff && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        className: "text-[10px] font-semibold uppercase tracking-wider bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded",
+                                        children: "Off"
+                                    }, void 0, false, {
+                                        fileName: "[project]/components/CourtCard.js",
+                                        lineNumber: 56,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, void 0, true, {
                                 fileName: "[project]/components/CourtCard.js",
-                                lineNumber: 37,
+                                lineNumber: 47,
                                 columnNumber: 11
                             }, this),
-                            isOff && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                className: "text-[10px] font-semibold uppercase tracking-wider bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded",
-                                children: "Off"
+                            isAdmin && onToggleActive && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                type: "button",
+                                onClick: ()=>onToggleActive(court.id),
+                                className: `text-xs px-2 py-0.5 rounded font-medium border transition-colors ${isOff ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50" : "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"}`,
+                                children: isOff ? "Turn On" : "Turn Off"
                             }, void 0, false, {
                                 fileName: "[project]/components/CourtCard.js",
-                                lineNumber: 41,
+                                lineNumber: 63,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/CourtCard.js",
-                        lineNumber: 36,
+                        lineNumber: 46,
                         columnNumber: 9
                     }, this),
-                    isAdmin && onToggleActive && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                        onClick: ()=>onToggleActive(court.id),
-                        className: `text-xs px-2 py-0.5 rounded font-medium border transition-colors ${isOff ? "bg-white text-gray-700 border-gray-300 hover:bg-gray-50" : "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"}`,
-                        children: isOff ? "Turn On" : "Turn Off"
+                    isOff ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                        className: "text-sm text-gray-400 italic mb-3",
+                        children: "Court is disabled"
                     }, void 0, false, {
                         fileName: "[project]/components/CourtCard.js",
-                        lineNumber: 48,
+                        lineNumber: 78,
+                        columnNumber: 11
+                    }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
+                        children: [
+                            isRunning && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: `text-sm font-medium mb-3 ${timeUp ? "text-red-600" : "text-[var(--blue)]"}`,
+                                children: timeUp ? "Time's up" : formatTime(remaining)
+                            }, void 0, false, {
+                                fileName: "[project]/components/CourtCard.js",
+                                lineNumber: 82,
+                                columnNumber: 15
+                            }, this),
+                            !hasPlayers ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                className: "text-sm text-gray-400 mb-3",
+                                children: "Waiting for players."
+                            }, void 0, false, {
+                                fileName: "[project]/components/CourtCard.js",
+                                lineNumber: 92,
+                                columnNumber: 15
+                            }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
+                                className: "space-y-1.5 mb-3",
+                                children: court.players.map((player, i)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                        className: "text-sm rounded-lg border border-[var(--border)] bg-white px-3 py-1.5",
+                                        children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$formatName$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["formatPlayerName"])(player?.name ?? player)
+                                    }, player?.id ?? i, false, {
+                                        fileName: "[project]/components/CourtCard.js",
+                                        lineNumber: 96,
+                                        columnNumber: 19
+                                    }, this))
+                            }, void 0, false, {
+                                fileName: "[project]/components/CourtCard.js",
+                                lineNumber: 94,
+                                columnNumber: 15
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/components/CourtCard.js",
+                        lineNumber: 80,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/CourtCard.js",
-                lineNumber: 35,
+                lineNumber: 45,
                 columnNumber: 7
             }, this),
-            isOff ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                className: "text-sm text-gray-400 italic mb-3",
-                children: "Court is disabled"
+            isAdmin && !isOff && timeMode === "perCourt" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "pt-3 border-t border-[var(--border)] mt-3",
+                children: !isRunning ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                    type: "button",
+                    onClick: onPlay,
+                    disabled: !canPlayCourt,
+                    className: "w-full text-xs font-semibold py-2 px-3 rounded-lg bg-[var(--blue)] text-white hover:bg-[var(--blue-dark)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer",
+                    children: "▶ Play"
+                }, void 0, false, {
+                    fileName: "[project]/components/CourtCard.js",
+                    lineNumber: 113,
+                    columnNumber: 13
+                }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                    type: "button",
+                    onClick: onFinish,
+                    className: "w-full text-xs font-semibold py-2 px-3 rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-colors cursor-pointer",
+                    children: "Match Finished"
+                }, void 0, false, {
+                    fileName: "[project]/components/CourtCard.js",
+                    lineNumber: 122,
+                    columnNumber: 13
+                }, this)
             }, void 0, false, {
                 fileName: "[project]/components/CourtCard.js",
-                lineNumber: 62,
-                columnNumber: 9
-            }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
-                children: [
-                    court.running && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: `text-sm font-medium mb-3 ${timeUp ? "text-red-600" : "text-[var(--blue)]"}`,
-                        children: timeUp ? "Time's up" : formatTime(remaining)
-                    }, void 0, false, {
-                        fileName: "[project]/components/CourtCard.js",
-                        lineNumber: 66,
-                        columnNumber: 13
-                    }, this),
-                    (court.players || []).length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                        className: "text-sm text-gray-400 mb-3",
-                        children: "Waiting for players."
-                    }, void 0, false, {
-                        fileName: "[project]/components/CourtCard.js",
-                        lineNumber: 76,
-                        columnNumber: 13
-                    }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
-                        className: "space-y-1.5 mb-3",
-                        children: court.players.map((player, i)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
-                                className: "text-sm rounded-lg border border-[var(--border)] bg-white px-3 py-1.5",
-                                children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$formatName$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["formatPlayerName"])(player?.name ?? player)
-                            }, player?.id ?? i, false, {
-                                fileName: "[project]/components/CourtCard.js",
-                                lineNumber: 80,
-                                columnNumber: 17
-                            }, this))
-                    }, void 0, false, {
-                        fileName: "[project]/components/CourtCard.js",
-                        lineNumber: 78,
-                        columnNumber: 13
-                    }, this)
-                ]
-            }, void 0, true, {
-                fileName: "[project]/components/CourtCard.js",
-                lineNumber: 64,
+                lineNumber: 111,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/CourtCard.js",
-        lineNumber: 28,
+        lineNumber: 38,
         columnNumber: 5
     }, this);
 }

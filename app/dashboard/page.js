@@ -58,16 +58,24 @@ export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [autoPlayIn, setAutoPlayIn] = useState(null);
   const [autoDuration, setAutoDuration] = useState(true);
+  const [timeMode, setTimeMode] = useState("shared");
+
+  useEffect(() => {
+    const savedMode = window.localStorage.getItem("timeMode");
+    if (savedMode === "shared" || savedMode === "perCourt") {
+      setTimeMode(savedMode);
+    }
+  }, []);
   const [editingProfile, setEditingProfile] = useState(false);
   const activeCourts = courts.filter((c) => c.active !== false);
   const [announcement, setAnnouncement] = useState("");
   const courtsEmpty = courts.every((c) => !c.running && (c.players || []).length === 0);
+  const fullQueueCount = queues.filter((q) => q.players.length === 4).length;
   const canPlay =
     courtsEmpty &&
-    queues.length >= activeCourts.length &&
-    queues[0]?.players.length === 4 &&
-    queues[1]?.players.length === 4 &&
-    queues[2]?.players.length === 4;
+    activeCourts.length > 0 &&
+    fullQueueCount >= activeCourts.length;
+
   const refreshPlayers = useCallback(async () => {
     setLoadingPlayers(true);
     try {
@@ -147,6 +155,11 @@ function playBuzzer() {
   }).catch(() => {});
 }
 
+function handleTimeModeChange(mode) {
+  setTimeMode(mode);
+  window.localStorage.setItem("timeMode", mode);
+}
+
   function persistQueues(next) {
     setQueues(next);
     saveQueues(next).catch((err) => setPlayersError(err.message));
@@ -175,6 +188,55 @@ function playBuzzer() {
       (p) => p.present && !queuedIds.has(p.id) && !onCourtIds.has(p.id)
     );
   }
+
+  // Start a single court using the first full queue available
+function handlePlayCourt(courtId) {
+  const targetCourt = courts.find((c) => c.id === courtId);
+  if (!targetCourt || targetCourt.active === false || targetCourt.running) return;
+
+  const firstFullQueue = queues.find((q) => q.players.length === 4);
+  if (!firstFullQueue) return;
+
+  const courtDuration =
+    timeMode === "perCourt" ? (targetCourt.duration ?? duration) : duration;
+
+  const nextCourts = courts.map((c) =>
+    c.id === courtId
+      ? {
+          ...c,
+          players: firstFullQueue.players.map((p) => ({ id: p.id, name: p.name })),
+          queueLabel: "Active Queue",
+          endsAt: Date.now() + courtDuration * 60 * 1000,
+          running: true,
+        }
+      : c
+  );
+
+  persistCourts(nextCourts);
+  persistQueues(queues.filter((q) => q.id !== firstFullQueue.id));
+}
+
+// Finish a single court and re-queue its players
+function handleMatchFinishedCourt(courtId) {
+  const court = courts.find((c) => c.id === courtId);
+  if (!court || (court.players || []).length === 0) return;
+
+  const nextCourts = courts.map((c) =>
+    c.id === courtId
+      ? { ...c, players: [], queueLabel: null, endsAt: null, running: false }
+      : c
+  );
+  persistCourts(nextCourts);
+
+  let next = queues;
+  for (const freed of court.players) {
+    const fullPlayer = players.find((p) => p.id === freed.id);
+    if (fullPlayer && fullPlayer.present) {
+      next = assignPresentPlayer(fullPlayer, next, players, newQueueId);
+    }
+  }
+  persistQueues(next);
+}
 
   async function handleToggleSuspendPlayer(player, suspended) {
     // Optimistically update local state
@@ -436,32 +498,35 @@ function playBuzzer() {
 
 function handlePlay() {
   const activeList = courts.filter((c) => c.active !== false);
-  if (activeList.length === 0 || queues.length < activeList.length) return;
+  if (activeList.length === 0) return;
 
-  const queuesToPlay = queues.slice(0, activeList.length);
-  const isEveryQueueFull = queuesToPlay.every((q) => q.players.length === 4);
-  if (!isEveryQueueFull) return;
+  const fullQueues = queues.filter((q) => q.players.length === 4);
+  if (fullQueues.length < activeList.length) return;
 
-  const endsAt = Date.now() + duration * 60 * 1000;
-  let activeIndex = 0;
+  const queuesToPlay = fullQueues.slice(0, activeList.length);
+  const playIds = new Set(queuesToPlay.map((q) => q.id));
 
+  let queueIndex = 0;
   const nextCourts = courts.map((court) => {
     if (court.active === false) return court;
 
-    const q = queuesToPlay[activeIndex];
-    activeIndex++;
+    const q = queuesToPlay[queueIndex];
+    queueIndex++;
+
+    const courtDuration =
+      timeMode === "perCourt" ? court.duration ?? duration : duration;
 
     return {
       ...court,
       players: q.players.map((p) => ({ id: p.id, name: p.name })),
-      queueLabel: `Queue ${activeIndex}`,
-      endsAt,
+      queueLabel: `Queue ${queueIndex}`,
+      endsAt: Date.now() + courtDuration * 60 * 1000,
       running: true,
     };
   });
 
   persistCourts(nextCourts);
-  persistQueues(queues.slice(activeList.length));
+  persistQueues(queues.filter((q) => !playIds.has(q.id)));
 }
 
   function handleMatchFinished() {
@@ -493,6 +558,12 @@ function handlePlay() {
     saveDuration(minutes).catch((err) => setPlayersError(err.message));
   }
 
+  function handleCourtDurationChange(courtId, minutes) {
+  const nextCourts = courts.map((c) =>
+    c.id === courtId ? { ...c, duration: minutes } : c
+  );
+  persistCourts(nextCourts);
+}
   // Counts full (4-player) courts and full (4-player) queues — i.e. complete
   // teams currently playing or waiting to play. Partially-filled queues
   // don't count.
@@ -568,21 +639,24 @@ return () => {
   }, [isAdmin, autoDuration, courts, queues]);
 
 
-  // Auto "Match finished": once a running court's timer (endsAt) has
-  // passed, trigger the same logic the button does. Button stays visible.
-  useEffect(() => {
-    if (!isAdmin) return;
-    const interval = setInterval(() => {
-      const expired = courts.some(
-        (c) => c.running && c.endsAt && Date.now() >= c.endsAt
-      );
-      if (expired){
-        playBuzzer()
+  // Auto "Match finished": check per court
+useEffect(() => {
+  if (!isAdmin) return;
+  const interval = setInterval(() => {
+    const expiredCourts = courts.filter(
+      (c) => c.running && c.endsAt && Date.now() >= c.endsAt
+    );
+    if (expiredCourts.length > 0) {
+      playBuzzer();
+      if (timeMode === "perCourt") {
+        expiredCourts.forEach((c) => handleMatchFinishedCourt(c.id));
+      } else {
         handleMatchFinished();
-      } 
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [isAdmin, courts, queues, players]);
+      }
+    }
+  }, 1000);
+  return () => clearInterval(interval);
+}, [isAdmin, courts, queues, players, timeMode]);
 
   // Auto "Play": once queues 1-3 are full (canPlay), wait 1 minute then
   // trigger the same logic the button does, unless it stops being ready
@@ -684,120 +758,189 @@ return () => {
           />
                   
           <section>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
-                Courts
-              </h2>
-              <div className="flex items-center gap-3">
-                {isAdmin && (
-                  <button
-                    onClick={handleMatchFinished}
-                    disabled={!courts.some((c) => c.players.length > 0)}
-                    className="text-sm text-[var(--blue)] font-medium disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    Match finished
-                  </button>
-                )}
-                {isAdmin && (
-                  <button
-                    onClick={() => setSidebarOpen((o) => !o)}
-                    className="text-sm text-gray-400 hover:text-[var(--blue)] font-medium"
-                    title={sidebarOpen ? "Hide panel" : "Show panel"}
-                  >
-                    {sidebarOpen ? "› Hide panel" : "‹ Show panel"}
-                  </button>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {courts.map((court) => (
-                <CourtCard
-                  key={court.id}
-                  court={court}
-                  isAdmin={isAdmin}
-                  onToggleActive={handleToggleCourtActive}
-                />
-              ))}
-            </div>
-          </section>
+  <div className="flex items-center justify-between mb-3">
+    <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+      Courts
+    </h2>
+    <div className="flex items-center gap-3">
+      {/* Show the global 'Match finished' button ONLY in Shared mode */}
+      {isAdmin && timeMode === "shared" && (
+        <button
+          onClick={handleMatchFinished}
+          disabled={!courts.some((c) => c.players.length > 0)}
+          className="text-sm text-[var(--blue)] font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          Match finished
+        </button>
+      )}
+      {isAdmin && (
+        <button
+          onClick={() => setSidebarOpen((o) => !o)}
+          className="text-sm text-gray-400 hover:text-[var(--blue)] font-medium"
+          title={sidebarOpen ? "Hide panel" : "Show panel"}
+        >
+          {sidebarOpen ? "› Hide panel" : "‹ Show panel"}
+        </button>
+      )}
+    </div>
+  </div>
 
-          <section>
+  {isAdmin && timeMode === "perCourt" && (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
+      {courts.map((court) => (
+        <div key={court.id} className="flex items-center gap-2 text-sm">
+          <span className="text-gray-500">{court.name || court.id}:</span>
+          <input
+            type="number"
+            min="1"
+            value={court.duration ?? duration}
+            onChange={(e) =>
+              handleCourtDurationChange(court.id, Number(e.target.value) || 1)
+            }
+            className="w-16 px-2 py-1 border border-[var(--border)] rounded text-center"
+          />
+          <span className="text-gray-400">m</span>
+        </div>
+      ))}
+    </div>
+  )}
+
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    {courts.map((court) => {
+      const isCourtAvailable =
+        court.active !== false &&
+        !court.running &&
+        (court.players || []).length === 0;
+      const hasFullQueue = queues.some((q) => (q.players || []).length === 4);
+
+      return (
+        <CourtCard
+          key={court.id}
+          court={court}
+          isAdmin={isAdmin}
+          timeMode={timeMode}
+          canPlayCourt={isCourtAvailable && hasFullQueue}
+          onPlay={() => handlePlayCourt(court.id)}
+          onFinish={() => handleMatchFinishedCourt(court.id)}
+          onToggleActive={handleToggleCourtActive}
+        />
+      );
+    })}
+  </div>
+</section>
+<section>
             {isAdmin && (
               <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-500">Match length</label>
-                
-                {/* Duration Buttons & Input (Disabled when in Auto mode) */}
-                <div className={`flex items-center rounded-lg border border-[var(--border)] overflow-hidden transition-opacity ${
-                  autoDuration ? "opacity-50 pointer-events-none bg-gray-50" : "opacity-100"
-                }`}>
-                  {[15, 20].map((mins) => (
-                    <button
-                      key={mins}
-                      type="button"
-                      onClick={() => handleDurationChange(mins, true)}
-                      className={`px-3 py-1 text-sm font-medium transition-colors ${
-                        duration === mins
-                          ? "bg-[var(--blue)] text-white"
-                          : "bg-white text-gray-600 hover:bg-gray-50"
+                {/* Match length & Auto/Manual: Only visible when NOT in per-court mode */}
+                {timeMode === "shared" && (
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-500">Match length</label>
+
+                    {/* Duration Buttons & Input (Disabled when in Auto mode) */}
+                    <div
+                      className={`flex items-center rounded-lg border border-[var(--border)] overflow-hidden transition-opacity ${
+                        autoDuration
+                          ? "opacity-50 pointer-events-none bg-gray-50"
+                          : "opacity-100"
                       }`}
                     >
-                      {mins}m
-                    </button>
-                  ))}
-                  <input
-                    type="number"
-                    min="1"
-                    value={duration}
-                    onChange={(e) => handleDurationChange(Number(e.target.value) || 1, true)}
-                    className="w-16 px-2 py-1 text-sm border-l border-[var(--border)] bg-transparent text-center focus:outline-none"
-                  />
-                </div>
+                      {[15, 20].map((mins) => (
+                        <button
+                          key={mins}
+                          type="button"
+                          onClick={() => handleDurationChange(mins, true)}
+                          className={`px-3 py-1 text-sm font-medium transition-colors ${
+                            duration === mins
+                              ? "bg-[var(--blue)] text-white"
+                              : "bg-white text-gray-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          {mins}m
+                        </button>
+                      ))}
+                      <input
+                        type="number"
+                        min="1"
+                        value={duration}
+                        onChange={(e) =>
+                          handleDurationChange(Number(e.target.value) || 1, true)
+                        }
+                        className="w-16 px-2 py-1 text-sm border-l border-[var(--border)] bg-transparent text-center focus:outline-none"
+                      />
+                    </div>
 
-                {/* Auto / Manual Toggle */}
+                    {/* Auto / Manual Toggle */}
+                    <div className="flex items-center rounded-lg border border-[var(--border)] overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setAutoDuration(true)}
+                        title="Auto: 7+ full teams (courts + queues) -> 15m, else 20m"
+                        className={`px-3 py-1 text-sm font-medium transition-colors ${
+                          autoDuration
+                            ? "bg-[var(--blue)] text-white"
+                            : "bg-white text-gray-600 hover:bg-gray-50"
+                        }`}
+                      >
+                        Auto
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAutoDuration(false)}
+                        className={`px-3 py-1 text-sm font-medium border-l border-[var(--border)] transition-colors ${
+                          !autoDuration
+                            ? "bg-[var(--blue)] text-white"
+                            : "bg-white text-gray-600 hover:bg-gray-50"
+                        }`}
+                      >
+                        Manual
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Shared vs Per Court Mode Toggle */}
                 <div className="flex items-center rounded-lg border border-[var(--border)] overflow-hidden">
                   <button
                     type="button"
-                    onClick={() => setAutoDuration(true)}
-                    title="Auto: 7+ full teams (courts + queues) -> 15m, else 20m"
+                    onClick={() => handleTimeModeChange("shared")}
                     className={`px-3 py-1 text-sm font-medium transition-colors ${
-                      autoDuration
-                      ? "bg-[var(--blue)] text-white"
-                      : "bg-white text-gray-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    Auto
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAutoDuration(false)}
-                    className={`px-3 py-1 text-sm font-medium border-l border-[var(--border)] transition-colors ${
-                      !autoDuration
+                      timeMode === "shared"
                         ? "bg-[var(--blue)] text-white"
                         : "bg-white text-gray-600 hover:bg-gray-50"
                     }`}
                   >
-                    Manual
+                    Shared
                   </button>
-                </div>
-              </div>
-
-
-
-                <div className="flex items-center gap-2">
                   <button
-                    onClick={handlePlay}
-                    disabled={!canPlay}
-                    className="rounded-lg bg-[var(--blue)] text-white font-medium text-sm px-5 py-2 hover:bg-[var(--blue-dark)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    type="button"
+                    onClick={() => handleTimeModeChange("perCourt")}
+                    className={`px-3 py-1 text-sm font-medium border-l border-[var(--border)] transition-colors ${
+                      timeMode === "perCourt"
+                        ? "bg-[var(--blue)] text-white"
+                        : "bg-white text-gray-600 hover:bg-gray-50"
+                    }`}
                   >
-                    ▶ Play
+                    Per court
                   </button>
-                  {autoPlayIn != null && (
-                    <span className="text-xs text-gray-400">
-                      Automatically starts in {autoPlayIn}s
-                    </span>
-                  )}
                 </div>
+
+                {/* Global Play Button: Only visible in shared mode */}
+                {timeMode === "shared" && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handlePlay}
+                      disabled={!canPlay}
+                      className="rounded-lg bg-[var(--blue)] text-white font-medium text-sm px-5 py-2 hover:bg-[var(--blue-dark)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      ▶ Play
+                    </button>
+                    {autoPlayIn != null && (
+                      <span className="text-xs text-gray-400">
+                        Automatically starts in {autoPlayIn}s
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
