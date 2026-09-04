@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   getSession,
@@ -9,6 +9,8 @@ import {
   saveCourts,
   saveQueues,
   saveDuration,
+  saveDurationManual,
+  saveAutoDuration,
   subscribeToAppState,
   saveAnnouncement,
 } from "@/lib/store";
@@ -38,9 +40,47 @@ import EditProfileModal from "@/components/EditProfileModal";
 import SuspendedPanel from "@/components/SuspendedPanel";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 
-let nextQueueId = 1;
 function newQueueId() {
-  return `q${Date.now()}_${nextQueueId++}`;
+  return `q${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+// Places one group of players (a full team, or a single solo player) into
+// queues as one FCFS unit: fills the first existing queue that has room
+// for the *whole* group before opening a new queue. A team is never split
+// across two queues, and no empty placeholder queue is created unless
+// nothing has room.
+function enqueueGroup(group, queuesList, makeQueueId) {
+  if (!group || group.length === 0) return queuesList;
+  const target = queuesList.find(
+    (q) => (q.players || []).length + group.length <= 4
+  );
+  if (target) {
+    return queuesList.map((q) =>
+      q.id === target.id ? { ...q, players: [...q.players, ...group] } : q
+    );
+  }
+  return [...queuesList, { id: makeQueueId(), players: group }];
+}
+
+// Groups a flat list of players by team_id (players with no team_id are
+// each their own solo group of 1) and enqueues each group in turn, FCFS,
+// via enqueueGroup. Keeps teammates together instead of scattering them
+// one-by-one.
+function enqueuePlayersGrouped(playersList, queuesList, makeQueueId) {
+  let next = queuesList;
+  const seen = new Set();
+  for (const p of playersList) {
+    if (seen.has(p.id)) continue;
+    if (p.team_id) {
+      const teammates = playersList.filter((x) => x.team_id === p.team_id);
+      teammates.forEach((t) => seen.add(t.id));
+      next = enqueueGroup(teammates, next, makeQueueId);
+    } else {
+      seen.add(p.id);
+      next = enqueueGroup([p], next, makeQueueId);
+    }
+  }
+  return next;
 }
 
 export default function DashboardPage() {
@@ -59,6 +99,11 @@ export default function DashboardPage() {
   const [autoPlayIn, setAutoPlayIn] = useState(null);
   const [autoDuration, setAutoDuration] = useState(true);
   const [timeMode, setTimeMode] = useState("shared");
+
+  // Tracks in-flight saveQueues() calls so an incoming realtime snapshot
+  // doesn't stomp on a local optimistic update that hasn't landed yet.
+  const pendingQueueWrites = useRef(0);
+  const pendingDurationWrite = useRef(0);
 
   useEffect(() => {
     const savedMode = window.localStorage.getItem("timeMode");
@@ -105,6 +150,7 @@ useEffect(() => {
       setCourts(state.courts || []);
       setQueues(state.queues || []);
       setDuration(state.duration ?? 20);
+      setAutoDuration(state.auto_duration ?? true);
       setAnnouncement(state.announcement || "");
     } catch (err) {
       setPlayersError(err.message);
@@ -112,12 +158,18 @@ useEffect(() => {
     setReady(true);
   })();
 
-  const unsubscribe = subscribeToAppState((newState) => {
-    if (newState.courts) setCourts(newState.courts);
-    if (newState.queues) setQueues(newState.queues);
-    if (newState.duration != null) setDuration(newState.duration);
-    if (newState.announcement !== undefined) setAnnouncement(newState.announcement);
-  });
+const unsubscribe = subscribeToAppState((newState) => {
+  if (newState.courts) setCourts(newState.courts);
+  if (newState.queues && pendingQueueWrites.current === 0) {
+    setQueues(newState.queues);
+  }
+  if (newState.duration != null && pendingDurationWrite.current === 0) {
+    setDuration(newState.duration);
+  }
+if (newState.auto_duration != null && pendingDurationWrite.current === 0) {
+  setAutoDuration(newState.auto_duration);
+}  if (newState.announcement !== undefined) setAnnouncement(newState.announcement);
+});
 
   return () => {
     unsubscribe();
@@ -160,9 +212,22 @@ function handleTimeModeChange(mode) {
   window.localStorage.setItem("timeMode", mode);
 }
 
-  function persistQueues(next) {
-    setQueues(next);
-    saveQueues(next).catch((err) => setPlayersError(err.message));
+  // Always builds the next value from the latest state (via the updater
+  // function form of setState), never from a closed-over `queues`
+  // variable. This is what prevents two near-simultaneous queue actions
+  // (e.g. approving two requests back to back, or a double click) from
+  // clobbering each other.
+  function persistQueues(updater) {
+    setQueues((prev) => {
+      const next = typeof updater === "function" ? updater(prev) : updater;
+      pendingQueueWrites.current++;
+      saveQueues(next)
+        .catch((err) => setPlayersError(err.message))
+        .finally(() => {
+          pendingQueueWrites.current--;
+        });
+      return next;
+    });
   }
 
   function persistCourts(next) {
@@ -213,7 +278,7 @@ function handlePlayCourt(courtId) {
   );
 
   persistCourts(nextCourts);
-  persistQueues(queues.filter((q) => q.id !== firstFullQueue.id));
+  persistQueues((prevQueues) => prevQueues.filter((q) => q.id !== firstFullQueue.id));
 }
 
 // Finish a single court and re-queue its players
@@ -228,14 +293,24 @@ function handleMatchFinishedCourt(courtId) {
   );
   persistCourts(nextCourts);
 
-  let next = queues;
-  for (const freed of court.players) {
-    const fullPlayer = players.find((p) => p.id === freed.id);
-    if (fullPlayer && fullPlayer.present) {
-      next = assignPresentPlayer(fullPlayer, next, players, newQueueId);
-    }
-  }
-  persistQueues(next);
+  persistQueues((prevQueues) => {
+    // Guard against this handler firing twice for the same match finish
+    // (double-click on Finish, a fast double-tap, etc.). Since
+    // persistCourts/persistQueues are async, a second call can still see
+    // the same court.players and would otherwise enqueue them again.
+    const alreadyQueuedIds = new Set(
+      prevQueues.flatMap((q) => (q.players || []).map((p) => p.id))
+    );
+    const freedPresent = court.players
+      .filter((freed) => !alreadyQueuedIds.has(freed.id))
+      .map((freed) => players.find((p) => p.id === freed.id))
+      .filter((p) => p && p.present);
+
+    // Re-queue as whole teams (or solo players) so a team of 4/3/2 goes
+    // back into one queue together, filling an existing partial queue
+    // first-come-first-served instead of scattering into new/empty ones.
+    return enqueuePlayersGrouped(freedPresent, prevQueues, newQueueId);
+  });
 }
 
   async function handleToggleSuspendPlayer(player, suspended) {
@@ -247,11 +322,12 @@ function handleMatchFinishedCourt(courtId) {
 
     // If suspended, remove player from queues immediately
     if (suspended) {
-      const next = queues.map((q) => ({
-        ...q,
-        players: q.players.filter((p) => p.id !== player.id),
-      }));
-      persistQueues(next);
+      persistQueues((prevQueues) =>
+        prevQueues.map((q) => ({
+          ...q,
+          players: q.players.filter((p) => p.id !== player.id),
+        }))
+      );
     }
 
     try {
@@ -287,11 +363,12 @@ function handleMatchFinishedCourt(courtId) {
     }
 
     if (!nextPresent) {
-      const next = queues.map((q) => ({
-        ...q,
-        players: q.players.filter((p) => p.id !== player.id),
-      }));
-      persistQueues(next);
+      persistQueues((prevQueues) =>
+        prevQueues.map((q) => ({
+          ...q,
+          players: q.players.filter((p) => p.id !== player.id),
+        }))
+      );
     }
   }
 
@@ -309,7 +386,7 @@ function handleMatchFinishedCourt(courtId) {
     setPlayers(updatedPlayers);
 
     // Clear queues
-    persistQueues([]);
+    persistQueues(() => []);
 
     // Update backend
     try {
@@ -321,26 +398,32 @@ function handleMatchFinishedCourt(courtId) {
     }
   }
 
+  // Accepts an optional queues list to check against so callers can verify
+  // membership against a freshly-read `prevQueues` inside a persistQueues
+  // updater, instead of a possibly-stale closed-over `queues`.
+  function isPlayerQueuedOrPlaying(playerId, queuesList = queues) {
+    const onCourt = courts.some((c) => (c.players || []).some((p) => p.id === playerId));
+    const inQueue = queuesList.some((q) => (q.players || []).some((p) => p.id === playerId));
+    return onCourt || inQueue;
+  }
+
   function handleQueuePlayer(player) {
-    const next = assignPresentPlayer(player, queues, players, newQueueId);
-    persistQueues(next);
+    persistQueues((prevQueues) => {
+      if (isPlayerQueuedOrPlaying(player.id, prevQueues)) return prevQueues;
+      return assignPresentPlayer(player, prevQueues, players, newQueueId);
+    });
   }
 
   function handleQueueTeam(teamId) {
-    const teammates = players.filter((p) => p.team_id === teamId && p.present);
-    if (teammates.length === 0) return;
-    const teamIds = new Set(teammates.map((p) => p.id));
-    const cleared = queues.map((q) => ({
-      ...q,
-      players: q.players.filter((p) => !teamIds.has(p.id)),
-    }));
-    persistQueues([...cleared, { id: newQueueId(), players: teammates }]);
-  }
-
-  function isPlayerQueuedOrPlaying(playerId) {
-    const onCourt = courts.some((c) => (c.players || []).some((p) => p.id === playerId));
-    const inQueue = queues.some((q) => (q.players || []).some((p) => p.id === playerId));
-    return onCourt || inQueue;
+    persistQueues((prevQueues) => {
+      const teammates = players.filter(
+        (p) => p.team_id === teamId && p.present && !isPlayerQueuedOrPlaying(p.id, prevQueues)
+      );
+      if (teammates.length === 0) return prevQueues;
+      // Fill the first existing queue with room for the whole team before
+      // opening a new one (FCFS), instead of always creating a new queue.
+      return enqueueGroup(teammates, prevQueues, newQueueId);
+    });
   }
 
   function handleRequestPresent(player) {
@@ -396,7 +479,10 @@ function handleMatchFinishedCourt(courtId) {
 
   // Approving any request type (presence, team create, team join) marks the
   // player present and auto-queues them — but only if they aren't already
-  // queued/playing, to avoid placing them into a second queue.
+  // queued/playing, to avoid placing them into a second queue. The
+  // queued/playing check and the actual queue insert both happen inside
+  // the persistQueues updater so they run against the same, freshest
+  // queues snapshot even if another approval is racing this one.
   function handleApproveRequest(request) {
     setRequests((prev) => prev.filter((r) => r.id !== request.id));
     resolveRequest(request.id).catch((err) => setPlayersError(err.message));
@@ -421,13 +507,11 @@ function handleMatchFinishedCourt(courtId) {
       setPlayerPresent(player.id, true).catch((err) => setPlayersError(err.message));
     }
 
-    if (
-      !isPlayerQueuedOrPlaying(player.id) &&
-      request.type !== "team_create" &&
-      request.type !== "team_join"
-    ) {
-      const next = assignPresentPlayer(updatedPlayer, queues, updatedPlayers, newQueueId);
-      persistQueues(next);
+    if (request.type !== "team_create" && request.type !== "team_join") {
+      persistQueues((prevQueues) => {
+        if (isPlayerQueuedOrPlaying(player.id, prevQueues)) return prevQueues;
+        return assignPresentPlayer(updatedPlayer, prevQueues, updatedPlayers, newQueueId);
+      });
     }
   }
 
@@ -471,29 +555,32 @@ function handleMatchFinishedCourt(courtId) {
   }
 
   function handleRemovePlayerFromQueue(queueId, playerId) {
-    const next = queues.map((q) =>
-      q.id === queueId
-        ? { ...q, players: q.players.filter((p) => p.id !== playerId) }
-        : q
+    persistQueues((prevQueues) =>
+      prevQueues.map((q) =>
+        q.id === queueId
+          ? { ...q, players: q.players.filter((p) => p.id !== playerId) }
+          : q
+      )
     );
-    persistQueues(next);
   }
 
   function handleAddPlayerToQueue(queueId, player) {
-    const next = queues.map((q) =>
-      q.id === queueId && q.players.length < 4
-        ? { ...q, players: [...q.players, player] }
-        : q
-    );
-    persistQueues(next);
+    persistQueues((prevQueues) => {
+      if (isPlayerQueuedOrPlaying(player.id, prevQueues)) return prevQueues;
+      return prevQueues.map((q) =>
+        q.id === queueId && q.players.length < 4
+          ? { ...q, players: [...q.players, player] }
+          : q
+      );
+    });
   }
 
   function handleDeleteQueue(queueId) {
-    persistQueues(queues.filter((q) => q.id !== queueId));
+    persistQueues((prevQueues) => prevQueues.filter((q) => q.id !== queueId));
   }
 
   function handleAddQueue() {
-    persistQueues([...queues, { id: newQueueId(), players: [] }]);
+    persistQueues((prevQueues) => [...prevQueues, { id: newQueueId(), players: [] }]);
   }
 
 function handlePlay() {
@@ -526,7 +613,7 @@ function handlePlay() {
   });
 
   persistCourts(nextCourts);
-  persistQueues(queues.filter((q) => !playIds.has(q.id)));
+  persistQueues((prevQueues) => prevQueues.filter((q) => !playIds.has(q.id)));
 }
 
   function handleMatchFinished() {
@@ -540,24 +627,33 @@ function handlePlay() {
     );
     persistCourts(nextCourts);
 
-    let next = queues;
-    for (const court of playingCourts) {
-      for (const freed of court.players) {
-        const fullPlayer = players.find((p) => p.id === freed.id);
-        if (fullPlayer && fullPlayer.present) {
-          next = assignPresentPlayer(fullPlayer, next, players, newQueueId);
-        }
-      }
-    }
-    persistQueues(next);
+    persistQueues((prevQueues) => {
+      const alreadyQueuedIds = new Set(
+        prevQueues.flatMap((q) => (q.players || []).map((p) => p.id))
+      );
+      const freedPresent = playingCourts
+        .flatMap((c) => c.players)
+        .filter((freed) => !alreadyQueuedIds.has(freed.id))
+        .map((freed) => players.find((p) => p.id === freed.id))
+        .filter((p) => p && p.present);
+
+      // Re-queue as whole teams (or solo players), FCFS into the first
+      // queue with room, instead of one player at a time.
+      return enqueuePlayersGrouped(freedPresent, prevQueues, newQueueId);
+    });
   }
 
-  function handleDurationChange(minutes, manual = true) {
-    if (manual) setAutoDuration(false);
-    setDuration(minutes);
-    saveDuration(minutes).catch((err) => setPlayersError(err.message));
-  }
-
+function handleDurationChange(minutes, manual = true) {
+  if (manual) setAutoDuration(false);
+  setDuration(minutes);
+  pendingDurationWrite.current++;
+  const save = manual ? saveDurationManual(minutes) : saveDuration(minutes);
+  save
+    .catch((err) => setPlayersError(err.message))
+    .finally(() => {
+      pendingDurationWrite.current--;
+    });
+}
   function handleCourtDurationChange(courtId, minutes) {
   const nextCourts = courts.map((c) =>
     c.id === courtId ? { ...c, duration: minutes } : c
@@ -873,7 +969,10 @@ useEffect(() => {
                     <div className="flex items-center rounded-lg border border-[var(--border)] overflow-hidden">
                       <button
                         type="button"
-                        onClick={() => setAutoDuration(true)}
+                        onClick={() => {
+  setAutoDuration(true);
+  saveAutoDuration(true).catch((err) => setPlayersError(err.message));
+}}
                         title="Auto: 7+ full teams (courts + queues) -> 15m, else 20m"
                         className={`px-3 py-1 text-sm font-medium transition-colors ${
                           autoDuration
@@ -885,7 +984,10 @@ useEffect(() => {
                       </button>
                       <button
                         type="button"
-                        onClick={() => setAutoDuration(false)}
+                        onClick={() => {
+  setAutoDuration(false);
+  saveAutoDuration(false).catch((err) => setPlayersError(err.message));
+}}
                         className={`px-3 py-1 text-sm font-medium border-l border-[var(--border)] transition-colors ${
                           !autoDuration
                             ? "bg-[var(--blue)] text-white"

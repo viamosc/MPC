@@ -469,13 +469,16 @@ const supabase = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_module
 "[project]/lib/tiers.js [app-ssr] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
-// Skill tiers, ordered low to high. Two players may share a queue only if
-// their tiers are the same or adjacent (max 1 tier apart).
+// Skill tiers, ordered low to high. Defined for display purposes
+// (TIER_LABELS) only — queue assignment below is plain first-come-first-
+// served and does not check tier at all.
 __turbopack_context__.s([
     "TIERS",
     ()=>TIERS,
     "TIER_LABELS",
     ()=>TIER_LABELS,
+    "assignGroupToQueues",
+    ()=>assignGroupToQueues,
     "assignPlayerToQueues",
     ()=>assignPlayerToQueues,
     "assignPresentPlayer",
@@ -531,6 +534,32 @@ function assignPlayerToQueues(player, queues, makeId) {
         }
     ];
 }
+function assignGroupToQueues(group, queues, makeId) {
+    if (!group || group.length === 0) return queues;
+    for(let i = 0; i < queues.length; i++){
+        const q = queues[i];
+        if (q.players.length + group.length <= 4) {
+            const next = [
+                ...queues
+            ];
+            next[i] = {
+                ...q,
+                players: [
+                    ...q.players,
+                    ...group
+                ]
+            };
+            return next;
+        }
+    }
+    return [
+        ...queues,
+        {
+            id: makeId(),
+            players: group
+        }
+    ];
+}
 function assignPresentPlayer(player, queues, allPlayers, makeId) {
     if (player.team_id) {
         const teammates = allPlayers.filter((p)=>p.team_id === player.team_id && p.present);
@@ -540,13 +569,11 @@ function assignPresentPlayer(player, queues, allPlayers, makeId) {
                     ...q,
                     players: q.players.filter((p)=>!teamIds.has(p.id))
                 }));
-            return [
-                ...cleared,
-                {
-                    id: makeId(),
-                    players: teammates
-                }
-            ];
+            // Fill an existing queue with room for the whole team (FCFS) before
+            // opening a new one — repeated calls (e.g. approving teammates one
+            // at a time) re-fill the same now-empty queue instead of abandoning
+            // it and minting a fresh one each time.
+            return assignGroupToQueues(teammates, cleared, makeId);
         }
     }
     return assignPlayerToQueues(player, queues, makeId);

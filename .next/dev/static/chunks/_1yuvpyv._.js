@@ -51,10 +51,14 @@ __turbopack_context__.s([
     ()=>logout,
     "saveAnnouncement",
     ()=>saveAnnouncement,
+    "saveAutoDuration",
+    ()=>saveAutoDuration,
     "saveCourts",
     ()=>saveCourts,
     "saveDuration",
     ()=>saveDuration,
+    "saveDurationManual",
+    ()=>saveDurationManual,
     "saveQueues",
     ()=>saveQueues,
     "setSession",
@@ -123,7 +127,7 @@ const DEFAULT_COURTS = [
 ;
 const STATE_ROW_ID = 1;
 async function getAppState() {
-    const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("app_state").select("courts, queues, duration, announcement").eq("id", STATE_ROW_ID).single();
+    const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("app_state").select("courts, queues, duration, announcement, auto_duration").eq("id", STATE_ROW_ID).single();
     if (error) throw new Error(error.message);
     return data;
 }
@@ -164,6 +168,21 @@ async function saveAnnouncement(announcement) {
     }).eq("id", 1);
     if (error) throw error;
     return data;
+}
+async function saveAutoDuration(autoDuration) {
+    const { error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("app_state").update({
+        auto_duration: autoDuration,
+        updated_at: new Date().toISOString()
+    }).eq("id", STATE_ROW_ID);
+    if (error) throw new Error(error.message);
+}
+async function saveDurationManual(duration) {
+    const { error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabaseClient$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("app_state").update({
+        duration,
+        auto_duration: false,
+        updated_at: new Date().toISOString()
+    }).eq("id", STATE_ROW_ID);
+    if (error) throw new Error(error.message);
 }
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
